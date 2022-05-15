@@ -14,7 +14,7 @@ And then click on "Thêm mới"
 
 Please config the server information as below and then tap on "Thêm mới"
 
-![Untitled-3](https://user-images.githubusercontent.com/43959552/168480549-939ac462-b384-4107-980f-759bfaafcb46.png)
+![Untitled-3](https://user-images.githubusercontent.com/43959552/168480687-783062ae-f29c-4b1d-b6c1-775835f458e9.png)
 
 After that, please use the below account to sign in
 
