@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:colour/colour.dart';
-import 'package:fl_animated_linechart/chart/animated_line_chart.dart';
-import 'package:fl_animated_linechart/chart/line_chart.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inet/models/piechart_data.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../classes/get_date.dart';
+import '../classes/pie_chart.dart';
 import '../config/config.dart';
 import '../data/dashboard_data.dart';
 import '../main.dart';
@@ -18,12 +19,14 @@ import '../models/alarm_type.dart';
 import '../models/channel_measure.dart';
 import '../models/chart_dashboard.dart';
 import '../models/chart_dashboard_value.dart';
+import '../models/chart_data.dart';
 import '../models/dashboard_content.dart';
 import '../models/dashboard_model.dart';
 import '../models/field_logger_data.dart';
 import '../models/logger_data.dart';
 import '../widgets/dropdown.dart';
 import '../widgets/loading.dart';
+import 'chart_view.dart';
 
 class DashboardView extends StatefulWidget {
   String username, password;
@@ -146,7 +149,7 @@ class DashboardViewState extends State<DashboardView> {
             key: UniqueKey(),
             children: (isDashboardLogger && isDashboardChart) ? (listDashboardWidgets.isNotEmpty ? listDashboardWidgets : listLoggersWidgets) : (isDashboardLogger ? listLoggersWidgets : listChartsWidgets),
           ) :
-          loadError(reloadDashboard, Theme.of(context), 1, "dashboard")
+          isLoadingDashboard ? loading(Theme.of(context), "dashboard") : loadError(reloadDashboard, Theme.of(context), 1, "dashboard")
           )
         ],
       ),
@@ -286,6 +289,9 @@ class DashboardViewState extends State<DashboardView> {
                                                   else if(twClass == "alarm-panel") {
                                                     temp.type = 2;
                                                   }
+                                                  else if(twClass == "channel-pie") {
+                                                    temp.type = 3;
+                                                  }
                                                   else {
                                                     temp.type = -1;
                                                   }
@@ -399,20 +405,17 @@ class DashboardViewState extends State<DashboardView> {
                                                     String loggerName = messDashboardContent.substring(0, messDashboardContent.indexOf("\""));
 
                                                     temp.listElement = List<DashboardElement>();
-                                                    bool isGotID = false;
+
                                                     while(loggerName.contains("{")) {
                                                       DashboardElement tempElement = DashboardElement();
 
-                                                      if(!isGotID) {
-                                                        if(loggerName.contains("loggerId:")) {
-                                                          loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
-                                                          String id = loggerName.substring(0, loggerName.indexOf(","));
-                                                          temp.loggerID = id;
-                                                          isGotID = true;
-                                                        }
-                                                        else {
-                                                          temp.loggerID = "";
-                                                        }
+                                                      if(loggerName.contains("loggerId:")) {
+                                                        loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
+                                                        String id = loggerName.substring(0, loggerName.indexOf(","));
+                                                        tempElement.loggerID = id;
+                                                      }
+                                                      else {
+                                                        temp.loggerID = "";
                                                       }
 
                                                       if(loggerName.contains("rawName:")) {
@@ -449,13 +452,41 @@ class DashboardViewState extends State<DashboardView> {
                                                 }
                                                 else if(temp.type == 2) {
                                                   if(messDashboardContent.contains("alarm-class=\"")) {
-                                                    messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("alarm-class=\"]") + 14);
-                                                    String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("\"]"));
-                                                    temp.loggerID = loggerID;
+                                                    messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("alarm-class=\"[") + 14);
+                                                    String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("]\""));
+                                                    if(loggerID.isNotEmpty && loggerID.contains(",")) {
+                                                      temp.listAlarm = loggerID.split(",");
+                                                    }
                                                   }
                                                   else {
-                                                    temp.loggerID = "";
+                                                    temp.listAlarm = null;
                                                   }
+                                                  listDashboardContent.add(temp);
+                                                }
+                                                else if(temp.type == 3) {
+                                                  if(messDashboardContent.contains("logger-id=\"")) {
+                                                    messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("logger-id=\"[") + 12);
+                                                    String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("]\""));
+                                                    if(loggerID.isNotEmpty && loggerID.contains(",")) {
+                                                      temp.listLoggerId = loggerID.split(",");
+                                                    }
+                                                    else if(loggerID.isNotEmpty) {
+                                                      temp.listLoggerId.add(loggerID);
+                                                    }
+
+                                                    if(messDashboardContent.contains("rawName:")) {
+                                                      String rawName = messDashboardContent.substring(messDashboardContent.indexOf("rawName:") + 8);
+                                                      String channel = rawName.substring(0, rawName.indexOf(","));
+                                                      temp.channel = channel;
+                                                    }
+                                                    else {
+                                                      temp.channel = "";
+                                                    }
+                                                  }
+                                                  else {
+                                                    temp.listLoggerId = null;
+                                                  }
+                                                  listDashboardContent.add(temp);
                                                 }
                                               }
                                             }
@@ -497,7 +528,9 @@ class DashboardViewState extends State<DashboardView> {
   }
 
   void changeDashboard(String newDashboard) {
+    homeKey.currentState.setIsCancel(true);
     setState(() {
+      isErrorDashboard = false;
       isLoadingDashboard = true;
       currentDashboard = newDashboard;
       listDashboard = decodeJsonDashboard(listDashboardModel.where((element) => element.name == newDashboard).first.content);
@@ -659,20 +692,17 @@ class DashboardViewState extends State<DashboardView> {
                     String loggerName = messDashboardContent.substring(0, messDashboardContent.indexOf("\""));
 
                     temp.listElement = List<DashboardElement>();
-                    bool isGotID = false;
+
                     while(loggerName.contains("{")) {
                       DashboardElement tempElement = DashboardElement();
 
-                      if(!isGotID) {
-                        if(loggerName.contains("loggerId:")) {
-                          loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
-                          String id = loggerName.substring(0, loggerName.indexOf(","));
-                          temp.loggerID = id;
-                          isGotID = true;
-                        }
-                        else {
-                          temp.loggerID = "";
-                        }
+                      if(loggerName.contains("loggerId:")) {
+                        loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
+                        String id = loggerName.substring(0, loggerName.indexOf(","));
+                        tempElement.loggerID = id;
+                      }
+                      else {
+                        temp.loggerID = "";
                       }
 
                       if(loggerName.contains("rawName:")) {
@@ -848,7 +878,7 @@ class DashboardViewState extends State<DashboardView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Value: " + (alarm.value != null ? alarm.value.toString() : ""),
+                "Value: " + (alarm.value != null ? alarm.value.toStringAsFixed(1) : ""),
                 style: Theme.of(context).textTheme.subtitle1.merge(
                     const TextStyle(fontWeight: FontWeight.w400, color: Colors.black)
                 ),
@@ -870,199 +900,125 @@ class DashboardViewState extends State<DashboardView> {
     );
   }
 
-  void setChartChanged_dashboard(String result, List<ChartDashboard> listChartDashboard, int idx) {
-    if(mounted && isReceivedChartDashboard[idx] == false) {
-      isReceivedChartDashboard[idx] = true;
-      setState(() {
-        listChartsWidgets.clear();
-      });
-      if(result != null && result.trim() != "") {
+  void setChartChanged_dashboard(String result, List<DashboardElement> listChartDashboard, int socketID, int idx, String title) {
+    if(mounted && isReceivedChartDashboard["$socketID-$idx"] == false && result.replaceAll("[]", "").isNotEmpty) {
+      isReceivedChartDashboard["$socketID-$idx"] = true;
+      if(mounted) {
+        setState(() {
+          listChartsWidgets.clear();
+        });
+        if(result != null && result.trim() != "") {
 
-        List<dynamic> jsonResult = json.decode(result);
-
-        for (var jsonField in jsonResult) {
-          List<Map<DateTime, double>> listChartData = List<Map<DateTime, double>>();
-          Map<String, dynamic> mapElement = Map<String, dynamic>.from(jsonField);
-          ChartDashboardValue temp = ChartDashboardValue();
-          mapElement.forEach((key, value) {
-            temp.listChannels = List<String>();
-
-            if(key == "objName") {
-              temp.loggerName = value;
-            }
-            else if(key == "listElement") {
-              List<dynamic> listElements = value;
-              listElements.forEach((detail) {
-                Map<String, dynamic> mapField = Map<String, dynamic>.from(detail);
-                mapField.forEach((key, value) {
-                  if(key == "name") {
-                    temp.listChannels.add(value);
-                  }
-                  else if(key == "value") {
-                    Map<String, String> mapValue = Map<String, String>.from(value);
-                    Map<DateTime, double> chartData = Map<DateTime, double>();
-                    mapValue.forEach((key, value) {
-                      try {
-                        chartData[DateTime.fromMicrosecondsSinceEpoch(int.parse(key) * 1000)] = double.parse(value);
-                      }
-                      catch(e) {
-                        chartData[DateTime.fromMicrosecondsSinceEpoch(int.parse(key) * 1000)] = 0;
-                      }
-                    });
-
-                    listChartData.add(chartData);
-                  }
-                });
-              });
-            }
-          });
+          List<dynamic> jsonResult = json.decode(result);
 
 
-          if(listChartData != null && listChartData.length > 0) {
-            LineChart tempLineChart;
 
-            List<MaterialColor> listColors = List<MaterialColor>();
+          for (var jsonField in jsonResult) {
+            ///data of chart
+            List<ChartData> currentChartData = [];
+            int previousTime = 0;
+            Map<String, dynamic> mapElement = Map<String, dynamic>.from(jsonField);
+            ChartDashboardValue temp = ChartDashboardValue();
+            mapElement.forEach((key, value) {
+              temp.listChannels = List<String>();
 
-            for(int i = 0; i < listChartData.length; i++) {
-              if(i % 2 == 0) {
-                listColors.add(Colors.blue);
+              if(key == "objName") {
+                temp.loggerName = value;
               }
-              else {
-                listColors.add(Colors.green);
-              }
-            }
+              else if(key == "listElement") {
+                List<dynamic> listElements = value;
+                for (var detail in listElements) {
+                  Map<String, dynamic> mapField = Map<String, dynamic>.from(detail);
+                  mapField.forEach((key, value) {
+                    if(key == "name") {
+                      temp.listChannels.add(value);
+                    }
+                    else if(key == "value") {
+                      Map<String, String> mapValue = Map<String, String>.from(value);
+                      mapValue.forEach((key, value) {
+                        try {
+                          ChartData tempChartData = ChartData(getDateString1(int.parse(key)), double.parse(value));
+                          currentChartData.add(tempChartData);
+                        }
+                        catch(e) {
 
-            tempLineChart = LineChart.fromDateTimeMaps(listChartData, listColors);
+                        }
+                      });
 
-            ChartDashboard findIdx;
-            try {
-              findIdx = listChartDashboard.where((element) => element.loggerName == temp.loggerName && element.listChannels.join(",") == temp.listChannels.join(",")).first;
-            }
-            catch(e) {
-              findIdx = null;
-            }
-
-            setState(() {
-              listChartsWidgets.add(
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 10, right: 25, left: 25),
-                        padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(child: Text("Logger: " + temp.loggerName + ", Channel: " + temp.listChannels.join(", "), style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(color: Colors.white)),),),
-                          ],
-                        ),
-                        decoration: BoxDecoration(
-                            color: Colour("#246EE9")
-                        ),
-                      ),
-                      Container(
-                          height: 200,
-                          margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-                          child: listChartData == null || listChartData.isEmpty ? Container(
-                            child: Center(
-                                child: emptyData(Theme.of(context), "Không có dữ liệu được gửi về theo ngày đã tìm")
-                            ),
-                          ) : AnimatedLineChart(
-                            tempLineChart,
-                            key: UniqueKey(),
-                          )
-                      ),
-                    ],
-                  )
-              );
-              if(findIdx != null && listDashboardWidgets.length > findIdx.idx) {
-                listDashboardWidgets.insert(
-                    findIdx.idx,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 10, right: 25, left: 25),
-                          padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(child: Text("Logger: " + temp.loggerName + ", Channel: " + temp.listChannels.join(", "), style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(color: Colors.white)),),),
-                            ],
-                          ),
-                          decoration: BoxDecoration(
-                              color: Colour("#246EE9")
-                          ),
-                        ),
-                        Container(
-                            height: 200,
-                            margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-                            child: listChartData == null || listChartData.isEmpty ? Container(
-                              child: Center(
-                                  child: emptyData(Theme.of(context), "Không có dữ liệu được gửi về theo ngày đã tìm")
-                              ),
-                            ) : AnimatedLineChart(
-                              tempLineChart,
-                              key: UniqueKey(),
-                            )
-                        ),
-                      ],
-                    )
-                );
-              }
-              else {
-                listDashboardWidgets.add(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 10, right: 25, left: 25),
-                          padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(child: Text("Logger: " + temp.loggerName + ", Channel: " + temp.listChannels.join(", "), style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(color: Colors.white)),),),
-                            ],
-                          ),
-                          decoration: BoxDecoration(
-                              color: Colour("#246EE9")
-                          ),
-                        ),
-                        Container(
-                            height: 200,
-                            margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-                            child: listChartData == null || listChartData.isEmpty ? Container(
-                              child: Center(
-                                  child: emptyData(Theme.of(context), "Không có dữ liệu được gửi về theo ngày đã tìm")
-                              ),
-                            ) : AnimatedLineChart(
-                              tempLineChart,
-                              key: UniqueKey(),
-                            )
-                        ),
-                      ],
-                    )
-                );
+                    }
+                  });
+                }
               }
             });
+
+
+            if(mapAllChartData[idx] == null || mapAllChartData[idx].isEmpty) {
+              mapAllChartData[idx] = [];
+              mapAllChartData[idx].add(currentChartData);
+              int findIdx;
+              try {
+                findIdx = listChartDashboard.elementAt(0).id;
+              }
+              catch(e) {
+                findIdx = null;
+              }
+
+              Widget chartChild = MyChart(mapAllChartData[idx], title: "Logger: ${temp.loggerName}, channel: ${temp.listChannels.elementAt(0)??""}");
+
+              setState(() {
+                listChartsWidgets.add(
+                    Container(
+                      margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+                      width: double.infinity,
+                      height: 300,
+                      child: chartChild,
+                    )
+                );
+                if(findIdx != null && listDashboardWidgets.length > findIdx) {
+                  listDashboardWidgets.insert(
+                      findIdx,
+                      Container(
+                        margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+                        width: double.infinity,
+                        height: 300,
+                        child: chartChild,
+                      )
+                  );
+                }
+                else {
+                  listDashboardWidgets.add(
+                      Container(
+                        margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+                        width: double.infinity,
+                        height: 300,
+                        child: chartChild,
+                      )
+                  );
+                }
+              });
+            }
+            else {
+              setState(() {
+                mapAllChartData[idx].add(currentChartData);
+              });
+            }
           }
+
         }
+        setState(() {
+          isLoadingDashboard = false;
+        });
 
+        isSendingQuery = false;
+        isReceivedDashboardChart = false;
       }
-      setState(() {
-        isLoadingDashboard = false;
-      });
-
-      isSendingQuery = false;
-      isReceivedDashboardChart = false;
     }
+
+
   }
 
   void buildListDashboard() {
-    List<ChartDashboard> listChartQuery = List<ChartDashboard>();
+    Map<int, List<DashboardElement>> listChartQuery = <int, List<DashboardElement>>{};
     setState(() {
       listDashboardWidgets.clear();
       listLoggersWidgets.clear();
@@ -1071,10 +1027,8 @@ class DashboardViewState extends State<DashboardView> {
     bool isHavingChart = false;
     int i = 0;
     int idx = 0;
-    int listDashboardSize = listDashboard.length;
 
     for (var element in listDashboard) {
-      listDashboardSize--;
       LoggerData a;
       try {
         a = storedData.where((storedElement) => storedElement.objName == element.loggerID).first;
@@ -1083,7 +1037,19 @@ class DashboardViewState extends State<DashboardView> {
         a = null;
       }
 
-      if(a != null || element.type == 2) {
+      int currentTime = 0;
+      if(a != null) {
+        for (var element in a.listElements) {
+
+          element.value.forEach((key, value) {
+            if(key > currentTime) {
+              currentTime = key;
+            }
+          });
+        }
+      }
+
+      if(a != null || element.type == 2 || (element.listElement != null && element.listElement.isNotEmpty)) {
         if(element.type == 0) {
           setState(() {
             listDashboardWidgets.add(
@@ -1099,14 +1065,23 @@ class DashboardViewState extends State<DashboardView> {
                   },
                   child: Container(
                     margin: i != 0 ? const EdgeInsets.only(left: 25, right: 25, bottom: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
-                    padding: const EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: Column (
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          margin: const EdgeInsets.only(bottom: 15, top: 5),
-                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1),
+                          padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
+                          margin: const EdgeInsets.only(bottom: 10, top: 5),
+                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                          decoration: BoxDecoration(
+                              color: Colour("#243347"),
+                              borderRadius: const BorderRadius.all(Radius.circular(5))
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 15),
+                          child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
                         ),
                         Column(
                           children: buildDashboardInfo(element.listElement, element.loggerID, element.loggerName),
@@ -1115,7 +1090,7 @@ class DashboardViewState extends State<DashboardView> {
                     ),
                     decoration: BoxDecoration(
                       // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
-                        color: i%3 == 0 ? Colour('#ECF2FF') : (i%3 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
+                        color: i%2 == 0 ? Colour('#ECF2FF') : (i%2 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
                         borderRadius: const BorderRadius.all(Radius.circular(15)),
                         boxShadow: const [
                            BoxShadow(
@@ -1144,14 +1119,23 @@ class DashboardViewState extends State<DashboardView> {
                   },
                   child: Container(
                     margin: i != 0 ? const EdgeInsets.only(left: 25, right: 25, bottom: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
-                    padding: const EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: Column (
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          margin: const EdgeInsets.only(bottom: 15, top: 5),
-                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1),
+                          padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
+                          margin: const EdgeInsets.only(bottom: 10, top: 5),
+                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                          decoration: BoxDecoration(
+                              color: Colour("#243347"),
+                              borderRadius: const BorderRadius.all(Radius.circular(5))
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 15),
+                          child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
                         ),
                         Column(
                           children: buildDashboardInfo(element.listElement, element.loggerID, element.loggerName),
@@ -1160,10 +1144,10 @@ class DashboardViewState extends State<DashboardView> {
                     ),
                     decoration: BoxDecoration(
                       // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
-                        color: i%3 == 0 ? Colour('#ECF2FF') : (i%3 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
+                        color: i%2 == 0 ? Colour('#ECF2FF') : (i%2 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
                         borderRadius: const BorderRadius.all(Radius.circular(15)),
-                        boxShadow: const[
-                           BoxShadow(
+                        boxShadow: const [
+                          BoxShadow(
                               color: Color.fromRGBO(151, 161, 204, 0.5),
                               offset: Offset(
                                   2,2
@@ -1182,19 +1166,26 @@ class DashboardViewState extends State<DashboardView> {
         }
         else if (element.type == 1){
           isHavingChart = true;
-          ChartDashboard temp = ChartDashboard();
-          temp.loggerName = element.loggerID;
-          List<String> listChannels = List<String>();
-          for (var channelElement in element.listElement) {
-            listChannels.add(channelElement.rawName);
+          // ChartDashboard temp = ChartDashboard();
+          // temp.loggerName = element.loggerID;
+          // List<String> listChannels = List<String>();
+          // for (var channelElement in element.listElement) {
+          //   listChannels.add(channelElement.rawName);
+          // }
+          // temp.listChannels = List<String>();
+          // temp.listChannels = listChannels;
+          // temp.idx = idx;
+          // if(temp.loggerName != "" && temp.loggerName != null && temp.listChannels != null && temp.listChannels.isNotEmpty){
+          //
+          //   idx++;
+          // }
+          element.id = idx;
+          for(var item in element.listElement) {
+            item.id = idx;
           }
-          temp.listChannels = List<String>();
-          temp.listChannels = listChannels;
-          temp.idx = idx;
-          if(temp.loggerName != "" && temp.loggerName != null && temp.listChannels != null && temp.listChannels .length > 0){
-            listChartQuery.add(temp);
-            idx++;
-          }
+          listChartQuery[idx] = [];
+          listChartQuery[idx].addAll(element.listElement);
+          idx++;
         }
         else if(element.type == 2) {
 
@@ -1207,8 +1198,8 @@ class DashboardViewState extends State<DashboardView> {
               currentMeasure = null;
             }
 
-            if(element.listAlarm.contains(alarmLogger.alarmID)) {
-              ///lay mau larm tuong ung
+            if(element.listAlarm != null && element.listAlarm.contains(alarmLogger.alarmID)) {
+              ///lay mau alarm tuong ung
               AlarmType tempAlarmType;
 
               try {
@@ -1233,24 +1224,29 @@ class DashboardViewState extends State<DashboardView> {
                       },
                       child: Container(
                         margin: i != 0 ? const EdgeInsets.only(left: 25, right: 25, bottom: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
-                        padding: const EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                        padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                         child: Column (
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
+                              padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
                               margin: const EdgeInsets.only(bottom: 5, top: 5),
-                              child: Text(alarmLogger.loggerID + " (" + (currentMeasure != null ? currentMeasure.channelName : alarmLogger.channel) + ")", style: Theme.of(context).textTheme.headline1),
+                              child: Text(alarmLogger.loggerID + " (" + (currentMeasure != null ? currentMeasure.channelName : alarmLogger.channel) + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                              decoration: BoxDecoration(
+                                  color: Colour("#243347"),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))
+                              ),
                             ),
                             Container(
                               margin: const EdgeInsets.only(bottom: 15),
-                              child: Text(getDateString1(alarmLogger.timeStamp)),
+                              child: Text(getDateString1(alarmLogger.timeStamp), style: TextStyle(fontSize: 12),),
                             ),
                             buildDashboardAlarm(alarmLogger)
                           ],
                         ),
                         decoration: BoxDecoration(
-                            border: Border.all(color: tempAlarmType != null ? Colour(tempAlarmType.color) : Colors.white, width: 5),
+                            border: Border.all(color: tempAlarmType != null ? Colour(tempAlarmType.color) : Colors.white, width: 2),
                             color: tempAlarmType != null ? Colour(tempAlarmType.color).withOpacity(0.5) : Colors.white,
                             borderRadius: const BorderRadius.all(Radius.circular(15)),
                             boxShadow: const [
@@ -1280,23 +1276,33 @@ class DashboardViewState extends State<DashboardView> {
                       },
                       child: Container(
                         margin: i != 0 ? const EdgeInsets.only(left: 25, right: 25, bottom: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
-                        padding: const EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                        padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                         child: Column (
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              margin: const EdgeInsets.only(bottom: 15, top: 5),
-                              child: Text(alarmLogger.loggerID + " (" + alarmLogger.channel??"" + ")", style: Theme.of(context).textTheme.headline1),
+                              padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
+                              margin: const EdgeInsets.only(bottom: 5, top: 5),
+                              child: Text(alarmLogger.loggerID + " (" + (currentMeasure != null ? currentMeasure.channelName : alarmLogger.channel) + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                              decoration: BoxDecoration(
+                                  color: Colour("#243347"),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 15),
+                              child: Text(getDateString1(alarmLogger.timeStamp), style: TextStyle(fontSize: 12),),
                             ),
                             buildDashboardAlarm(alarmLogger)
                           ],
                         ),
                         decoration: BoxDecoration(
-                            color: tempAlarmType != null ? Colour(tempAlarmType.color) : Colors.white,
+                            border: Border.all(color: tempAlarmType != null ? Colour(tempAlarmType.color) : Colors.white, width: 2),
+                            color: tempAlarmType != null ? Colour(tempAlarmType.color).withOpacity(0.5) : Colors.white,
                             borderRadius: const BorderRadius.all(Radius.circular(15)),
-                            boxShadow: [
-                              const BoxShadow(
+                            boxShadow: const [
+                              BoxShadow(
                                   color: Color.fromRGBO(151, 161, 204, 0.5),
                                   offset: Offset(
                                       2,2
@@ -1310,8 +1316,59 @@ class DashboardViewState extends State<DashboardView> {
                     )
                 );
               });
+              idx++;
             }
           }
+
+        }
+        else if(element.type == 3) {
+          List<MyPieChartData> listData = [];
+          double total = 0;
+          for(String item in element.listLoggerId) {
+            double value = 0;
+
+            LoggerData getValue;
+            try {
+              getValue = storedData.where((storedElement) => storedElement.objName == item).first;
+            }
+            catch(e) {
+              getValue = null;
+            }
+            
+            if(getValue != null) {
+              FieldLoggerData listValueChannels;
+              try {
+                listValueChannels = getValue.listElements.where((listElement) => listElement.fieldName == element.channel).first;
+              }
+              catch(e) {
+                listValueChannels = null;
+              }
+              
+              if(listValueChannels != null && listValueChannels.value.isNotEmpty) {
+                int maxKey = 0;
+                listValueChannels.value.forEach((key, value) {
+                  if(key > maxKey) {
+                    maxKey = key;
+                  }
+                });
+
+                value = listValueChannels.value[maxKey];
+              }
+            }
+            
+            MyPieChartData temp = MyPieChartData();
+
+            temp.value = value;
+            temp.loggerID = item;
+            temp.channel = element.channel;
+            listData.add(temp);
+            total+=value;
+          }
+          setState(() {
+            listDashboardWidgets.add(MyPieChart(data: listData, total: total,));
+            listChartsWidgets.add(MyPieChart(data: listData, total: total,));
+          });
+          idx++;
         }
       }
     }
@@ -1319,18 +1376,21 @@ class DashboardViewState extends State<DashboardView> {
     if(!isHavingChart) {
       setState(() {
         isLoadingDashboard = false;
-
       });
     }
     else {
       if(!isSendingQuery) {
         isSendingQuery = true;
-        int idx = 0;
-        listSocket.forEach((element) {
-          isReceivedChartDashboard[idx] = false;
-
-          socketService.getDashboardDataChart(listChartQuery, setChartChanged_dashboard, element, idx);
-          idx++;
+        int socketID = 0;
+        
+        listChartQuery.forEach((key, value) {
+          List<DashboardElement> listElements = value;
+          String title = "Loggers: ${listElements.map((e) => e.loggerID).toList()}";
+          for (var element in listSocket) {
+            isReceivedChartDashboard["$socketID-$idx"] = false;
+            socketService.getDashboardDataChart(value, setChartChanged_dashboard, element, socketID, idx, title);
+            idx++;
+          }
         });
       }
     }
