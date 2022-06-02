@@ -984,6 +984,9 @@ class LoginState extends State<LoginPage> {
                                                 else if(twClass == "alarm-panel") {
                                                   temp.type = 2;
                                                 }
+                                                else if(twClass == "channel-pie") {
+                                                  temp.type = 3;
+                                                }
                                                 else {
                                                   temp.type = -1;
                                                 }
@@ -1097,20 +1100,17 @@ class LoginState extends State<LoginPage> {
                                                   String loggerName = messDashboardContent.substring(0, messDashboardContent.indexOf("\""));
 
                                                   temp.listElement = List<DashboardElement>();
-                                                  bool isGotID = false;
+
                                                   while(loggerName.contains("{")) {
                                                     DashboardElement tempElement = DashboardElement();
 
-                                                    if(!isGotID) {
-                                                      if(loggerName.contains("loggerId:")) {
-                                                        loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
-                                                        String id = loggerName.substring(0, loggerName.indexOf(","));
-                                                        temp.loggerID = id;
-                                                        isGotID = true;
-                                                      }
-                                                      else {
-                                                        temp.loggerID = "";
-                                                      }
+                                                    if(loggerName.contains("loggerId:")) {
+                                                      loggerName = loggerName.substring(loggerName.indexOf("loggerId:") + 9);
+                                                      String id = loggerName.substring(0, loggerName.indexOf(","));
+                                                      tempElement.loggerID = id;
+                                                    }
+                                                    else {
+                                                      temp.loggerID = "";
                                                     }
 
                                                     if(loggerName.contains("rawName:")) {
@@ -1147,13 +1147,41 @@ class LoginState extends State<LoginPage> {
                                               }
                                               else if(temp.type == 2) {
                                                 if(messDashboardContent.contains("alarm-class=\"")) {
-                                                  messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("alarm-class=\"]") + 14);
-                                                  String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("\"]"));
-                                                  temp.loggerID = loggerID;
+                                                  messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("alarm-class=\"[") + 14);
+                                                  String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("]\""));
+                                                  if(loggerID.isNotEmpty && loggerID.contains(",")) {
+                                                    temp.listAlarm = loggerID.split(",");
+                                                  }
                                                 }
                                                 else {
-                                                  temp.loggerID = "";
+                                                  temp.listAlarm = null;
                                                 }
+                                                listDashboardContent.add(temp);
+                                              }
+                                              else if(temp.type == 3) {
+                                                if(messDashboardContent.contains("logger-id=\"")) {
+                                                  messDashboardContent = messDashboardContent.substring(messDashboardContent.indexOf("logger-id=\"[") + 12);
+                                                  String loggerID = messDashboardContent.substring(0, messDashboardContent.indexOf("]\""));
+                                                  if(loggerID.isNotEmpty && loggerID.contains(",")) {
+                                                    temp.listLoggerId = loggerID.split(",");
+                                                  }
+                                                  else if(loggerID.isNotEmpty) {
+                                                    temp.listLoggerId.add(loggerID);
+                                                  }
+
+                                                  if(messDashboardContent.contains("rawName:")) {
+                                                    String rawName = messDashboardContent.substring(messDashboardContent.indexOf("rawName:") + 8);
+                                                    String channel = rawName.substring(0, rawName.indexOf(","));
+                                                    temp.channel = channel;
+                                                  }
+                                                  else {
+                                                    temp.channel = "";
+                                                  }
+                                                }
+                                                else {
+                                                  temp.listLoggerId = null;
+                                                }
+                                                listDashboardContent.add(temp);
                                               }
                                             }
                                           }
