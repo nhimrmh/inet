@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:inet/config/config.dart';
 import 'package:inet/models/chart_dashboard.dart';
 
+import '../models/dashboard_content.dart';
 import 'get_date.dart';
 
 const _chars = 'abcdefghijklmnopqrstuvwxyz';
@@ -66,7 +67,7 @@ class SocketService {
     });
   }
 
-  void getDashboardDataChart(List<ChartDashboard> listChartDashboard, Function function, IO.Socket currentSocket, int socketIdx) {
+  void getDashboardDataChart(List<DashboardElement> listChartDashboard, Function function, IO.Socket currentSocket, int socketIdx, int idx, String title) {
     String myJSON;
 
     Random random = new Random();
@@ -77,16 +78,16 @@ class SocketService {
     for(int i = 0; i < listChartDashboard.length; i++) {
       String randomString = getRandomString(20);
       if(i != listChartDashboard.length - 1) {
-        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerName + "\",\"query\":{\"randomId\": \"" + randomString
+        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerID + "\",\"query\":{\"randomId\": \"" + randomString
             + "\",\"mode\": \"0\", \"statement\": \"SELECT timestamp, "
-            + (listChartDashboard.elementAt(i).listChannels.length > 1 ? listChartDashboard.elementAt(i).listChannels.join(", ") : listChartDashboard.elementAt(i).listChannels.first)
-            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 1000\"},\"modify\":null}, ";
+            + listChartDashboard.elementAt(i).rawName
+            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 500\"},\"modify\":null}, ";
       }
       else {
-        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerName + "\",\"query\":{\"randomId\": \"" + randomString
+        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerID + "\",\"query\":{\"randomId\": \"" + randomString
             + "\",\"mode\": \"0\", \"statement\": \"SELECT timestamp, "
-            + (listChartDashboard.elementAt(i).listChannels.length > 1 ? listChartDashboard.elementAt(i).listChannels.join(", ") : listChartDashboard.elementAt(i).listChannels.first)
-            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 1000\"},\"modify\":null}";
+            + listChartDashboard.elementAt(i).rawName
+            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 500\"},\"modify\":null}";
       }
 
     }
@@ -96,7 +97,7 @@ class SocketService {
     currentSocket.emit('push_data_event', myJSON);
     //this.socket.on("synch", (_) => print("receive data"));
     currentSocket.on("dataset", (result) {
-      function(result, listChartDashboard, socketIdx);
+      function(result, listChartDashboard, socketIdx, idx, title);
     });
   }
 
