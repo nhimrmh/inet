@@ -77,7 +77,7 @@ class LoggerDetailState extends State<LoggerDetail> {
     List<Widget> resultWidgets = new List<Widget>();
     details.forEach((key, value) {
       resultWidgets.add(
-          new Container(
+          Container(
             margin: EdgeInsets.only(top: 3, bottom: 3),
             padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
             child: Row(

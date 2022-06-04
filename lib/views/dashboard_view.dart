@@ -5,6 +5,7 @@ import 'package:colour/colour.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inet/classes/get_unit_name.dart';
 import 'package:inet/models/chart_data_id.dart';
 import 'package:inet/models/piechart_data.dart';
 import 'package:page_transition/page_transition.dart';
@@ -1080,8 +1081,8 @@ class DashboardViewState extends State<DashboardView> {
                       children: [
                         Container(
                           padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                          margin: const EdgeInsets.only(bottom: 10, top: 5),
-                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                          margin: const EdgeInsets.only(bottom: 5, top: 5),
+                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
                           decoration: BoxDecoration(
                               color: Colour("#243347"),
                               borderRadius: const BorderRadius.all(Radius.circular(5))
@@ -1134,8 +1135,8 @@ class DashboardViewState extends State<DashboardView> {
                       children: [
                         Container(
                           padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                          margin: const EdgeInsets.only(bottom: 10, top: 5),
-                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white))),
+                          margin: const EdgeInsets.only(bottom: 5, top: 5),
+                          child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
                           decoration: BoxDecoration(
                               color: Colour("#243347"),
                               borderRadius: const BorderRadius.all(Radius.circular(5))
@@ -1393,10 +1394,11 @@ class DashboardViewState extends State<DashboardView> {
         
         listChartQuery.forEach((key, value) {
           List<DashboardElement> listElements = value;
-          String title = "Loggers: ${listElements.map((e) => e.loggerID).toSet().toList()}\nChannels: ${listElements.map((e) => e.rawName).toSet().toList()}";
+
+          String title = "Loggers: ${listElements.map((e) => e.loggerID).toSet().toList()}\nChannels: ${listElements.map((e) => getChannelName(e.rawName)).toSet().toList()}";
           for (var element in listSocket) {
             isReceivedChartDashboard["$socketID-$idx"] = false;
-            socketService.getDashboardDataChart(value, setChartChanged_dashboard, element, socketID, idx, title, listLoggerId: listElements.map((e) => e.loggerID).toList(), listChannel: listElements.map((e) => e.rawName).toList());
+            socketService.getDashboardDataChart(value, setChartChanged_dashboard, element, socketID, idx, title, listLoggerId: listElements.map((e) => e.loggerID).toList(), listChannel: listElements.map((e) => getChannelName(e.rawName)).toList());
             idx++;
           }
         });

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:inet/classes/get_unit_name.dart';
 import 'package:inet/models/chart_data.dart';
 import 'package:inet/views/chart_view.dart';
 
@@ -683,8 +684,9 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
         setState(() {
           if(tempList.isNotEmpty) {
+
             ChartDataID temp = ChartDataID()
-            ..id = "$loggerName-$channelName"
+            ..id = "$loggerName-${getChannelName(channelName)}"
             ..chartData = tempList;
 
             chartData.add(temp);
@@ -746,8 +748,8 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         currentMeasure = null;
       }
       if(i < 3) {
-        if(mapIsChartChannel["${logger.objName}-${element.fieldName}"] == null) {
-          mapIsChartChannel["${logger.objName}-${element.fieldName}"] = false;
+        if(mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"] == null) {
+          mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"] = false;
         }
 
         resultWidget.add(
@@ -762,21 +764,33 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   SizedBox(
                     width: 30,
                     height: 30,
-                    child: Checkbox(value: mapIsChartChannel["${logger.objName}-${element.fieldName}"], onChanged: (val){
+                    child: Checkbox(value: mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"], onChanged: (val){
                       setState(() {
-                        mapIsChartChannel["${logger.objName}-${element.fieldName}"] = val;
+                        mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"] = val;
                       });
                       if(val) {
                         requestChartChannel(logger: logger, element: element, currentMeasure: currentMeasure);
                       }
                       else {
                         setState(() {
+                          ///remove chart data
                           try {
-                            chartData.removeWhere((q) => q.id == "${logger.objName}-${element.fieldName}");
+                            chartData.removeWhere((q) => q.id == "${logger.objName}-${getChannelName(element.fieldName)}");
                           }
                           catch (e) {
 
                           }
+                          ///remove title
+                          if(listCurrentLoggers.contains(logger.objName)) {
+                            listCurrentLoggers.remove(logger.objName);
+                          }
+                          if(listCurrentChannels.contains(getChannelName(element.fieldName))) {
+                            listCurrentChannels.remove(getChannelName(element.fieldName));
+                          }
+                          if(listCheckUnique.contains("${logger.objName}-${getChannelName(element.fieldName)}")) {
+                            listCheckUnique.remove("${logger.objName}-${getChannelName(element.fieldName)}");
+                          }
+
                         });
                       }
                     }),
@@ -784,18 +798,29 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   GestureDetector(
                     onTap: (){
                       setState(() {
-                        mapIsChartChannel["${logger.objName}-${element.fieldName}"] = !mapIsChartChannel["${logger.objName}-${element.fieldName}"];
+                        mapIsChartChannel["${logger.objName}-${getChannelName(element.fieldName)}"] = !mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"];
                       });
-                      if(mapIsChartChannel["${logger.objName}-${element.fieldName}"]) {
+                      if(mapIsChartChannel["${logger.objName}-${getChannelName(element.fieldName)}"]) {
                         requestChartChannel(logger: logger, element: element, currentMeasure: currentMeasure);
                       }
                       else {
-                        try {
-                          chartData.removeWhere((q) => q.id == "${logger.objName}-${element.fieldName}");
-                        }
-                        catch (e) {
+                        setState(() {
+                          try {
+                            chartData.removeWhere((q) => q.id == "${logger.objName}-${getChannelName(element.fieldName)}");
+                          }
+                          catch (e) {
 
-                        }
+                          }
+                          if(listCurrentLoggers.contains(logger.objName)) {
+                            listCurrentLoggers.remove(logger.objName);
+                          }
+                          if(listCurrentChannels.contains(getChannelName(element.fieldName))) {
+                            listCurrentChannels.remove(getChannelName(element.fieldName));
+                          }
+                          if(listCheckUnique.contains("${logger.objName}-${getChannelName(element.fieldName)}")) {
+                            listCheckUnique.remove("${logger.objName}-${getChannelName(element.fieldName)}");
+                          }
+                        });
                       }
                     },
                     child: Container(
