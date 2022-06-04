@@ -55,12 +55,12 @@ class LoggerInformation extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          Container(
-              margin: EdgeInsets.only(right: 25),
-              child: new Icon(Icons.bar_chart, color: Colour("#051639"),)
-          )
-        ],
+        // actions: [
+        //   Container(
+        //       margin: const EdgeInsets.only(right: 25),
+        //       child: Icon(Icons.bar_chart, color: Colour("#051639"),)
+        //   )
+        // ],
         leading: IconButton(
             onPressed: (){
               Navigator.of(context).pop();
@@ -71,14 +71,18 @@ class LoggerInformation extends StatelessWidget {
       body: Column(
         children: [
           Container(
-            margin: EdgeInsets.only(top: 20, left: 25, right: 25),
+            margin: const EdgeInsets.only(top: 20, left: 25, right: 25),
             child: Text(currentName != "" ? (currentName + (data.objName != null ? (" (" + data.objName +  ")") : "")) : (data.objName ?? ""), style: Theme.of(context).textTheme.headline1,),
           ),
           Container(
-            margin: EdgeInsets.only(top: 10, bottom: 20),
+            margin: const EdgeInsets.only(top: 10, bottom: 20),
             child: Text(currentDMA.trim() == "" ? "Chưa có DMA" : currentDMA, style: Theme.of(context).textTheme.subtitle2),
           ),
-          Expanded(child: ListView(children: [LoggerDetail(data)],))
+          Expanded(child: Container(
+            margin: EdgeInsets.only(top: 15),
+            padding: const EdgeInsets.only(left: 15, right: 15),
+            child: ListView(children: [LoggerDetail(data)],),
+          ))
         ],
       )
     );

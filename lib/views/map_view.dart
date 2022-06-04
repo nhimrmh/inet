@@ -1009,11 +1009,9 @@ class GisMapViewState extends State<GisMapView> {
                             //   child: Text("Địa chỉ: ${item.diaChi}, ${item.dma}",
                             //     style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400)),),
                             // ),
-                            Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: _buildChannelValues(mapChannelValues),
-                                )
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: _buildChannelValues(mapChannelValues),
                             )
                           ],
                         ),
@@ -1076,8 +1074,8 @@ class GisMapViewState extends State<GisMapView> {
                                   decoration: BoxDecoration(
                                       color: Colour('#246EE9'),
                                       borderRadius: const BorderRadius.all(Radius.circular(10)),
-                                      boxShadow: [
-                                        const BoxShadow(
+                                      boxShadow: const [
+                                        BoxShadow(
                                             color: Color.fromRGBO(151, 161, 204, 0.5),
                                             offset: Offset(
                                                 2,2
@@ -1121,9 +1119,8 @@ class GisMapViewState extends State<GisMapView> {
 
   List<Widget> _buildChannelValues(Map<ChannelMeasure, double> mapChannelValues){
     List<Widget> resultWidgets = [];
-    int count = 0;
     mapChannelValues.forEach((key, value) {
-      if(count < 3) {
+      if(listChannelSelect.contains(key.channelID)) {
         resultWidgets.add(
             Expanded(
               child: Container(
@@ -1150,7 +1147,6 @@ class GisMapViewState extends State<GisMapView> {
             )
         );
       }
-      count++;
     });
 
     return resultWidgets;
