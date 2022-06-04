@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:inet/models/chart_data.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class MyChart extends StatelessWidget {
-  List<List<ChartData>> data = [];
-  String title;
+import '../models/chart_data_id.dart';
 
-  MyChart(this.data, {this.title});
+class MyChart extends StatelessWidget {
+  List<ChartDataID> data = [];
+  String title;
+  List<String> listLoggerID;
+  List<String> listChannel;
+
+  MyChart(this.data, {this.title, this.listLoggerID, this.listChannel});
 
   ZoomPanBehavior _zoomPanBehavior = ZoomPanBehavior(
     // Enables pinch zooming
@@ -23,16 +27,21 @@ class MyChart extends StatelessWidget {
   }
 
   List<LineSeries<ChartData, String>> buildSeries() {
-    var temp = data.map((e) {
-      return LineSeries<ChartData, String>(
-          dataSource: e,
+    int idx = 0;
+    List<LineSeries<ChartData, String>> resultWidgets = [];
+    for(var item in data) {
+      resultWidgets.add(LineSeries<ChartData, String>(
+          dataSource: item.chartData,
           xValueMapper: (ChartData data, _) => data.timeStamp.toString(),
           yValueMapper: (ChartData data, _) => data.value,
-          name: 'Giá trị',
+          name: "${listLoggerID?.elementAt(idx)??""}(${listChannel?.elementAt(idx)??""})",
+
           // Enable data label
-          dataLabelSettings: DataLabelSettings(isVisible: false));
-    }).toList();
-    return temp;
+          dataLabelSettings: DataLabelSettings(isVisible: false))
+      );
+      idx++;
+    }
+    return resultWidgets;
   }
 
   @override
@@ -63,7 +72,7 @@ class MyChart extends StatelessWidget {
                   arrangeByIndex: true
               ),
               zoomPanBehavior: _zoomPanBehavior,
-              legend: Legend(isVisible: false),
+              legend: Legend(isVisible: true, position: LegendPosition.bottom),
               tooltipBehavior: TooltipBehavior(enable: true),
               series: buildSeries()
           ))

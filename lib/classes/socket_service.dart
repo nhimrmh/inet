@@ -67,7 +67,7 @@ class SocketService {
     });
   }
 
-  void getDashboardDataChart(List<DashboardElement> listChartDashboard, Function function, IO.Socket currentSocket, int socketIdx, int idx, String title) {
+  void getDashboardDataChart(List<DashboardElement> listChartDashboard, Function function, IO.Socket currentSocket, int socketIdx, int idx, String title, {List<String> listLoggerId, List<String> listChannel}) {
     String myJSON;
 
     Random random = new Random();
@@ -97,7 +97,7 @@ class SocketService {
     currentSocket.emit('push_data_event', myJSON);
     //this.socket.on("synch", (_) => print("receive data"));
     currentSocket.on("dataset", (result) {
-      function(result, listChartDashboard, socketIdx, idx, title);
+      function(result, listChartDashboard, socketIdx, idx, title, listLoggerID: listLoggerId ?? [], listChannel: listChannel ?? []);
     });
   }
 
