@@ -21,6 +21,7 @@ import 'package:flutter_map_arcgis/layers/feature_layer_options.dart' as arcgis;
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 
 import '../widgets/alert.dart';
+import 'logger_information.dart';
 
 class GisMapView extends StatefulWidget {
   const GisMapView({Key key}) : super(key: key);
@@ -1060,7 +1061,7 @@ class GisMapViewState extends State<GisMapView> {
                                       context,
                                       PageTransition(
                                         type: PageTransitionType.rightToLeft,
-                                        child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == item.maLogger).first),
+                                        child: LoggerInformation(storedData.where((storedElement) => storedElement.objName == item.maLogger).first),
                                       ),
                                     );
                                   }

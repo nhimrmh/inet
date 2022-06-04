@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:inet/classes/get_logger_info.dart';
 import 'package:inet/classes/get_unit_name.dart';
 import 'package:inet/models/chart_data.dart';
 import 'package:inet/views/chart_view.dart';
@@ -453,7 +454,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       if(searchText.trim() != "") {
         for (var element in storedData) {
-          if(element.objName.contains(searchText)){
+          if(element.objName.contains(searchText) || getLoggerName(element.objName).contains(searchText)){
             listData.add(element);
           }
         }
@@ -901,74 +902,83 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
 
       resultWidgets.add(
-          GestureDetector(
-            onTap: (){
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: LoggerDetail(loggersList.elementAt(i)),
-                ),
-              );
-            },
-            child: Container(
-              margin: i == 0 ? const EdgeInsets.only(left: 25, right: 25) : i != (loggersList.length - 1) ? const EdgeInsets.only(left: 25, right: 25, top: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
-              padding: const EdgeInsets.only(left: 20, right: 10, top: 20, bottom: 20),
-              child: Column (
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                        child: Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
-                        decoration: BoxDecoration(
-                            color: Colour("#243347"),
-                            borderRadius: const BorderRadius.all(Radius.circular(5))
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
-                      ),
-                    ],
-                  ),
-                  Container(
-                      margin: const EdgeInsets.only(top: 5, bottom: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Logger ID: " + loggersList.elementAt(i).objName + (currentDMA != "" ? (", " + currentDMA) : ""), style: Theme.of(context).textTheme.subtitle2),
-                          const Icon(Icons.arrow_right_outlined, size: 30,)
-                        ],
-                      )
-                  ),
-                  Row(
+        Container(
+          margin: i == 0 ? const EdgeInsets.only(left: 25, right: 25) : i != (loggersList.length - 1) ? const EdgeInsets.only(left: 25, right: 25, top: 15) : const EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
+          padding: const EdgeInsets.only(top: 15, bottom: 5),
+          decoration: BoxDecoration(
+            // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
+              color: i%2 == 0 ? Colour('#ECF2FF') : (i%2 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color.fromRGBO(151, 161, 204, 0.5),
+                    offset: Offset(
+                        2,2
+                    ),
+                    blurRadius: 3,
+                    spreadRadius: 0
+                )
+              ]
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              collapsedTextColor: Colors.black,
+              textColor: Colors.black,
+              tilePadding: const EdgeInsets.only(left: 10, right: 0),
+              trailing: const SizedBox(),
+              title: Container(
+                transform: Matrix4.translationValues(10, 0, 0),
+                child: Column (
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: buildDetailLogger(loggersList.elementAt(i).listElements, loggersList.elementAt(i))
-                  )
-                ],
-              ),
-              decoration: BoxDecoration(
-                // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
-                  color: i%2 == 0 ? Colour('#ECF2FF') : (i%2 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  boxShadow: const [
-                     BoxShadow(
-                        color: Color.fromRGBO(151, 161, 204, 0.5),
-                        offset: Offset(
-                            2,2
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
+                          child: Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1.merge(const TextStyle(color: Colors.white, fontSize: 14))),
+                          decoration: BoxDecoration(
+                              color: Colour("#243347"),
+                              borderRadius: const BorderRadius.all(Radius.circular(5))
+                          ),
                         ),
-                        blurRadius: 3,
-                        spreadRadius: 0
+                        Container(
+                          margin: const EdgeInsets.only(right: 10),
+                          child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: const TextStyle(fontSize: 12),),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 15, bottom: 15),
+                      child: Text("Logger ID: " + loggersList.elementAt(i).objName + (currentDMA != "" ? (", " + currentDMA) : ""), style: Theme.of(context).textTheme.subtitle2),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: buildDetailLogger(loggersList.elementAt(i).listElements, loggersList.elementAt(i))
+                      ),
                     )
-                  ]
+                  ],
+                ),
               ),
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(top: 10, bottom: 10),
+                  margin: const EdgeInsets.only(left: 10, right: 10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10))
+                  ),
+                  child: LoggerDetail(loggersList.elementAt(i)),
+                )
+              ],
             ),
-          )
+          ),
+        )
       );
     }
     return resultWidgets;
