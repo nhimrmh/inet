@@ -176,13 +176,3 @@ Widget emptyData(ThemeData themeData, String description) {
       )
   );
 }
-
-Widget miniLoading() {
-  return const Center(
-    child: SizedBox(
-      width: 50,
-      height: 50,
-      child: CircularProgressIndicator(),
-    ),
-  );
-}

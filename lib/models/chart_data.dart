@@ -1,13 +1,10 @@
 class ChartData {
-  String _timeStamp;
+  int _timeStamp;
   double _value;
 
+  int get timeStamp => _timeStamp;
 
-  ChartData(this._timeStamp, this._value);
-
-  String get timeStamp => _timeStamp;
-
-  set timeStamp(String value) {
+  set timeStamp(int value) {
     _timeStamp = value;
   }
 

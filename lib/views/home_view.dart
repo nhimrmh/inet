@@ -1,17 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:colour/colour.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_animated_linechart/chart/line_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:inet/models/chart_data.dart';
-import 'package:inet/views/chart_view.dart';
 
 import 'package:latlong2/latlong.dart';
 import 'package:page_transition/page_transition.dart';
@@ -24,7 +20,6 @@ import 'package:inet/models/logger_data.dart';
 
 import 'package:inet/widgets/chart.dart';
 import 'package:inet/widgets/loading.dart';
-import '../classes/get_date.dart';
 import '../data/dashboard_data.dart';
 import '../main.dart';
 import '../models/alarm_logger.dart';
@@ -62,7 +57,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //Chart variables
   bool isLoadingData = false;
   LineChart lineChart;
-  List<List<ChartData>> chartData = [];
+  Map<DateTime, double> chartData = <DateTime, double>{};
   String currentLogger = "", currentChannel = "";
 
   @override
@@ -210,17 +205,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               )
           ),
-          isLoadingData ? Container(
-              height: 200,
-              margin: const EdgeInsets.only(top: 10, right: 25, left: 25),
-              child: miniLoading()
-          ) : (chartData != null && chartData.isNotEmpty ? Container(
-            margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-            width: double.infinity,
-            height: 300,
-            child: MyChart(chartData, title: "Logger: $currentLogger, channel: $currentChannel",),
-          ) : Container()),
-          // ChannelChart(isLoadingData, lineChart, chartData, currentChannel, currentChannel, setChartChanged, storedData),
+          ChannelChart(isLoadingData, lineChart, chartData, currentChannel, currentChannel, setChartChanged, storedData),
           Container(
               margin: const EdgeInsets.only(left: 25, right: 25, bottom: 20, top: 15),
               child: Row(
@@ -360,7 +345,6 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 listData.clear();
                 storedData.clear();
                 listAddresses.clear();
-                listAlarmLogger.clear();
               });
               int idx = 1;
               for (var element in listSocket) {
@@ -386,12 +370,6 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   ///global key functions
   bool getIsGotData() {
     return isGotData;
-  }
-
-  void setIsCancel(bool val) {
-    setState(() {
-      isCancel = val;
-    });
   }
 
   bool getIsCancel() {
@@ -428,7 +406,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void initSocketIO() {
     Future.delayed(const Duration(seconds: 10), (){
-      if(!isCancel && dashboardKey.currentState != null) {
+      if(!isCancel) {
         dashboardKey.currentState.setLoading(false);
       }
     });
@@ -469,6 +447,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setState(() {
         if(currentIdx == listSocket.length) {
           isCancel = true;
+          listAlarmLogger.clear();
         }
       });
 
@@ -635,11 +614,10 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         isReceivedChartQuery[idx] = true;
       });
       int tempMaxDateTime = -1;
-      List<ChartData> tempList = <ChartData>[];
       if(result != null && result.trim() != "") {
         List<dynamic> jsonResult = json.decode(result);
 
-        for (var jsonField in jsonResult) {
+        jsonResult.forEach((jsonField) {
           Map<String, dynamic> mapElement = Map<String, dynamic>.from(jsonField);
           mapElement.forEach((key, value) {
             if(key == "listElement") {
@@ -659,54 +637,26 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
                       }
                       try {
-                        ChartData tempChartData = ChartData(getDateString1(int.parse(key)), double.parse(value));
-                        tempList.add(tempChartData);
+                        chartData[DateTime.fromMicrosecondsSinceEpoch(int.parse(key) * 1000)] = double.parse(value);
                       }
                       catch(e) {
-
+                        chartData[DateTime.fromMicrosecondsSinceEpoch(int.parse(key) * 1000)] = 0;
                       }
                     });
                   }
                 });
 
-                // lineChart = LineChart.fromDateTimeMaps([chartData], [Colors.green]);
-                // chartKey.currentState.setNewLineChart(lineChart);
-                // chartKey.currentState.setMaxDateTime(tempMaxDateTime);
-                // chartKey.currentState.setChartInfo(loggerName, channelName, !isReceivedChartDashboard.containsValue(false));
+                lineChart = LineChart.fromDateTimeMaps([chartData], [Colors.green]);
+                chartKey.currentState.setNewLineChart(lineChart);
+                chartKey.currentState.setMaxDateTime(tempMaxDateTime);
+                chartKey.currentState.setChartInfo(loggerName, channelName, !isReceivedChartDashboard.containsValue(false));
               });
             }
           });
-        }
-        setState(() {
-          chartData.add(tempList);
-          flagChartClicked = false;
         });
+
       }
     }
-  }
-
-  void setDataChart(LoggerData logger, String channelName){
-    setState(() {
-      isLoadingData = true;
-      isCancel = false;
-    });
-
-    int idx = 1;
-    for (var element in listSocket) {
-      isReceivedChartQuery[idx] = false;
-      mapNameChartQuery[idx] = logger.objName;
-      socketService.getDataChart(logger.objName, channelName, 1000, "", "", setChartChanged, element, idx, listSocket.length);
-      idx++;
-    }
-
-    loadTimer = Timer(Duration(seconds: 5), () {
-      if(!isCancel) {
-        setState(() {
-          isLoadingData = false;
-          isError = true;
-        });
-      }
-    });
   }
 
   List<Widget> buildDetailLogger(List<FieldLoggerData> listLoggerData, LoggerData logger) {
@@ -726,11 +676,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 onTap: (){
                   //clicked once but trigger multiple time??
                   if(!flagChartClicked) {
-                    setDataChart(logger, element.fieldName);
-                    setState(() {
-                      currentLogger = logger.objName;
-                      currentChannel = currentMeasure != null ? currentMeasure.channelName : element.fieldName;
-                    });
+                    chartKey.currentState.setDataChart(logger, element.fieldName);
                   }
                   setState(() {
                     flagChartClicked = true;
@@ -801,18 +747,6 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       }
 
-      int currentTime = 0;
-      if(loggersList.elementAt(i) != null) {
-        loggersList.elementAt(i).listElements.forEach((element) {
-
-          element.value.forEach((key, value) {
-            if(key > currentTime) {
-              currentTime = key;
-            }
-          });
-        });
-      }
-
       resultWidgets.add(
           GestureDetector(
             onTap: (){
@@ -831,23 +765,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                        child: Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
-                        decoration: BoxDecoration(
-                            color: Colour("#243347"),
-                            borderRadius: const BorderRadius.all(Radius.circular(5))
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
-                      ),
-                    ],
-                  ),
+                  Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1),
                   Container(
                       margin: const EdgeInsets.only(top: 5, bottom: 5),
                       child: Row(
@@ -866,7 +784,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
               decoration: BoxDecoration(
                 // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
-                  color: i%2 == 0 ? Colour('#ECF2FF') : (i%2 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
+                  color: i%3 == 0 ? Colour('#ECF2FF') : (i%3 == 1 ? Colour('#F0ECE4') : Colour('C6D0DF')),
                   borderRadius: const BorderRadius.all(Radius.circular(15)),
                   boxShadow: const [
                      BoxShadow(

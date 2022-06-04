@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:inet/config/config.dart';
-import 'package:inet/views/chart_view.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../classes/auth.dart';
@@ -61,13 +60,6 @@ class MainMenuState extends State<MainMenuPage> {
     dashboard.image = "assets/dashboard.png";
     dashboard.icon = const Icon(Icons.assignment, color: Colors.white, size: 30,);
     listMenus.add(dashboard);
-
-    // MenuModel test = MenuModel();
-    // test.title = "Test";
-    // test.color = Colors.transparent;
-    // test.image = "assets/report.png";
-    // test.icon = const Icon(Icons.assignment, color: Colors.white, size: 30,);
-    // listMenus.add(test);
   }
 
   void addNews() {
@@ -166,6 +158,15 @@ class MainMenuState extends State<MainMenuPage> {
                     PageTransition(
                       type: PageTransitionType.rightToLeft,
                       child: MyHomePage(key: homeKey, username: username, password: password,),
+                    ),
+                  );
+                }
+                else if(listMenu.elementAt(i).title.trim() == "Bản đồ") {
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      type: PageTransitionType.rightToLeft,
+                      child: MapScene(),
                     ),
                   );
                 }

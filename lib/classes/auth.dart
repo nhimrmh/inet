@@ -8,9 +8,11 @@ class Auth {
 
   Future<void> deleteServer(String name) async {
     await storage.read(key: "inetServer").then((value){
+      print(value);
       if(value.contains(name)) {
         value = value.replaceAll(name, "");
       }
+      print(value);
       storage.write(key: "inetServer", value: value); // 3
       return;
     }); //

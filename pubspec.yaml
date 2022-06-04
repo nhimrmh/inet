@@ -54,7 +54,6 @@ dependencies:
   overlay_support: ^1.2.1
   fl_chart: ^0.46.0
   flutter_map_arcgis: ^2.0.0
-  syncfusion_flutter_charts: ^20.1.57
 
 #  mvc_pattern: ^8.10.1+1
 

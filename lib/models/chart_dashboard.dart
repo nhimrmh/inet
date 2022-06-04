@@ -9,7 +9,6 @@ class ChartDashboard {
     _idx = value;
   }
 
-
   String get loggerName => _loggerName;
 
   set loggerName(String value) {

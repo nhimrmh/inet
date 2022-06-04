@@ -8,12 +8,10 @@ import 'package:ionicons/ionicons.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:page_transition/page_transition.dart';
 
-import '../classes/get_date.dart';
 import '../config/config.dart';
 import '../main.dart';
 import '../main/logger_detail.dart';
 import '../models/alarm_type.dart';
-import '../models/channel_measure.dart';
 import '../models/logger_data.dart';
 import '../models/logger_point.dart';
 import 'package:flutter_map_arcgis/esri_plugin.dart';
@@ -139,17 +137,18 @@ class GisMapViewState extends State<GisMapView> {
                 isInformation ? InformationPanel(currentPoint) : Container(),
                 isSearch ? SearchPanel(currentSearchText) :
                 (isViewMenu ? (viewMenu != 1 ? DetailPanel(viewMenu == 0 ? ListLogger() : ListLayer()) : FilterPanel(VisibilityLogger())) : Container()),
-                !isInformation ? RecenterWidget() : Container()
               ],
             ))
           ],
         ),
       ],
-    ) : const Center(
-      child: SizedBox(
-        width: 50,
-        height: 50,
-        child: CircularProgressIndicator(),
+    ) : Container(
+      child: const Center(
+        child: SizedBox(
+          width: 50,
+          height: 50,
+          child: CircularProgressIndicator(),
+        ),
       ),
     );
   }
@@ -481,7 +480,7 @@ class GisMapViewState extends State<GisMapView> {
                             Positioned.fill(child: Align(
                               alignment: Alignment.center,
                               child: Icon(Ionicons.location, size: 20,
-                                  color: temp.listAlarm != null && temp.listAlarm.isNotEmpty ? Colour(temp.listAlarm.elementAt(0).color) : Colors.blue),
+                                  color: temp.listAlarm != null && temp.listAlarm.length > 0 ? Colour(temp.listAlarm.elementAt(0).color) : Colors.blue),
                             )),
                             const Positioned.fill(child: Align(
                               alignment: Alignment.center,
@@ -606,11 +605,11 @@ class GisMapViewState extends State<GisMapView> {
 
           Marker tempMarker = Marker(
               anchorPos: AnchorPos.align(AnchorAlign.center),
-              width: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
-              height: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
+              width: isTatCa || (temp.listAlarm != null && temp.listAlarm.length > 0 && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
+              height: isTatCa || (temp.listAlarm != null && temp.listAlarm.length > 0 && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
               point: LatLng(temp.position.latitude, temp.position.longitude),
               builder: (ctx) =>
-              (!isTatCa && temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true && temp.isFocused != true) ? Container() :
+              (!isTatCa && temp.listAlarm != null && temp.listAlarm.length > 0 && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true && temp.isFocused != true) ? Container() :
               GestureDetector(
                 onTap: (){
                   globalMapController.move(temp.position, globalMapController.zoom);
@@ -637,7 +636,7 @@ class GisMapViewState extends State<GisMapView> {
                     Positioned.fill(child: Align(
                       alignment: Alignment.center,
                       child: Icon(Ionicons.location, size: 20,
-                          color: temp.listAlarm != null && temp.listAlarm.isNotEmpty ? Colour(temp.listAlarm.elementAt(0).color) : Colors.blue),
+                          color: temp.listAlarm != null && temp.listAlarm.length > 0 ? Colour(temp.listAlarm.elementAt(0).color) : Colors.blue),
                     )),
                     const Positioned.fill(child: Align(
                       alignment: Alignment.center,
@@ -720,17 +719,8 @@ class GisMapViewState extends State<GisMapView> {
   List<Widget> ListSearch(String searchText) {
     List<Widget> resultWidgets = List<Widget>();
     if(searchText.trim() != "") {
-
       for(int i = 0; i < listLoggerPoints.length; i++) {
-        LoggerData a;
-        try {
-          a = storedData.where((storedElement) => storedElement.objName == listLoggerPoints.elementAt(i).maLogger).first;
-        }
-        catch(e) {
-          a = null;
-        }
-
-        if(listLoggerPoints.elementAt(i).tenLogger.trim().toUpperCase().contains(searchText.trim().toUpperCase()) && a != null) {
+        if(listLoggerPoints.elementAt(i).tenLogger.trim().toUpperCase().contains(searchText.trim().toUpperCase())) {
           resultWidgets.add(
               GestureDetector(
                   onTap: (){
@@ -907,208 +897,115 @@ class GisMapViewState extends State<GisMapView> {
     );
   }
 
-  Widget RecenterWidget(){
-    return Align(
-      alignment: Alignment.bottomRight,
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        margin: const EdgeInsets.all(15),
-        child: IconButton(
-          onPressed: () => recenterMap(),
-          icon: const Icon(Icons.zoom_out_map, size: 35,),
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              spreadRadius: 0,
-              blurRadius: 2,
-              offset: Offset(2, 2)
-            )
-          ]
-        ),
-      )
-    );
-  }
-
   Widget InformationPanel(LoggerPoint item) {
-    LoggerData a;
-    try {
-      a = storedData.where((storedElement) => storedElement.objName == item.maLogger).first;
-    }
-    catch(e) {
-      a = null;
-    }
-
-    int currentTime = 0;
-    Map<ChannelMeasure, double> mapChannelValues = <ChannelMeasure, double>{};
-    if(a != null) {
-      for (var element in a.listElements) {
-        int maxKey = 0;
-        element.value.forEach((key, value) {
-          if(key > currentTime) {
-            currentTime = key;
-            maxKey = key;
-          }
-
-        });
-        ChannelMeasure currentMeasure = ChannelMeasure();
-        try {
-          currentMeasure = listChannelMeasure.where((measure) => measure.channelID == element.fieldName).first;
-        }
-        catch(e) {
-          currentMeasure = null;
-        }
-        if(currentMeasure != null) {
-          mapChannelValues[currentMeasure] = element.value[maxKey];
-        }
-        else {
-          mapChannelValues[null] = element.value[maxKey];
-        }
-
-      }
-    }
-
     return currentPoint.tenLogger.trim() != "" ? Align(
         alignment: Alignment.bottomCenter,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RecenterWidget(),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(left: 25, right: 15, top: 15, bottom: 15),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(left: 25, right: 15, top: 15, bottom: 15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                child: Text(item.tenLogger, style: Theme.of(context).textTheme.headline2,),
+              ),
+              Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                    decoration: BoxDecoration(
-                        color: Colour("#243347"),
-                        borderRadius: const BorderRadius.all(Radius.circular(5))
-                    ),
-                    margin: const EdgeInsets.only(bottom: 5),
-                    child: Text("${item.tenLogger} (${item.maLogger})", style: Theme.of(context).textTheme.headline2.merge(const TextStyle(fontSize: 16, color: Colors.white)),),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: Text(currentTime != 0 ? getDateString1(currentTime) : ""),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Container(
-                            //   margin: const EdgeInsets.only(bottom: 10),
-                            //   child: Text("Địa chỉ: ${item.diaChi}, ${item.dma}",
-                            //     style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400)),),
-                            // ),
-                            Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: _buildChannelValues(mapChannelValues),
-                                )
-                            )
-                          ],
-                        ),
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: Text("Địa chỉ: " + (item.diaChi == null || item.diaChi.trim() == "" ? "Chưa có" : item.diaChi.trim()),
+                          style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400)),),
                       ),
                       Container(
-                          margin: const EdgeInsets.only(left: 25),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              GestureDetector(
-                                onTap: (){
-                                  globalMapController.move(currentPoint.position, 15);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  child: const Icon(Icons.search, color: Colors.white,),
-                                  decoration: BoxDecoration(
-                                      color: Colour('#246EE9'),
-                                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                            color: Color.fromRGBO(151, 161, 204, 0.5),
-                                            offset: Offset(
-                                                2,2
-                                            ),
-                                            blurRadius: 3,
-                                            spreadRadius: 0
-                                        )
-                                      ]
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: (){
-                                  LoggerData temp;
-                                  try {
-                                    temp = storedData.where((storedElement) => storedElement.objName == item.maLogger).first;
-                                  }
-                                  catch(e) {
-                                    temp = null;
-                                  }
-                                  if(temp != null) {
-                                    Navigator.push(
-                                      context,
-                                      PageTransition(
-                                        type: PageTransitionType.rightToLeft,
-                                        child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == item.maLogger).first),
-                                      ),
-                                    );
-                                  }
-                                  else {
-                                    showAlertDialog(context, "Không thể xem dữ liệu logger", "Dữ liệu của logger này chưa được cập nhật về hệ thống, vui lòng thử lại sau");
-                                  }
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(top: 15),
-                                  padding: const EdgeInsets.all(10),
-                                  child: const Icon(Icons.bar_chart, color: Colors.white,),
-                                  decoration: BoxDecoration(
-                                      color: Colour('#246EE9'),
-                                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                                      boxShadow: [
-                                        const BoxShadow(
-                                            color: Color.fromRGBO(151, 161, 204, 0.5),
-                                            offset: Offset(
-                                                2,2
-                                            ),
-                                            blurRadius: 3,
-                                            spreadRadius: 0
-                                        )
-                                      ]
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                      )
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: Text("DMA: " + (item.dma == null || item.dma.trim() == "" ? "Chưa có" : item.dma.trim()),
+                          style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400)),),
+                      ),
                     ],
                   ),
+                  Expanded(child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: (){
+                          globalMapController.move(currentPoint.position, 15);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(Icons.search, color: Colors.white,),
+                          decoration: BoxDecoration(
+                              color: Colour('#246EE9'),
+                              borderRadius: const BorderRadius.all(Radius.circular(10)),
+                              boxShadow: const [
+                                 BoxShadow(
+                                    color: Color.fromRGBO(151, 161, 204, 0.5),
+                                    offset: Offset(
+                                        2,2
+                                    ),
+                                    blurRadius: 3,
+                                    spreadRadius: 0
+                                )
+                              ]
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: (){
+                          LoggerData temp;
+                          try {
+                            temp = storedData.where((storedElement) => storedElement.objName == item.maLogger).first;
+                          }
+                          catch(e) {
+                            temp = null;
+                          }
+                          if(temp != null) {
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                type: PageTransitionType.rightToLeft,
+                                child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == item.maLogger).first),
+                              ),
+                            );
+                          }
+                          else {
+                            showAlertDialog(context, "Không thể xem dữ liệu logger", "Dữ liệu của logger này chưa được cập nhật về hệ thống, vui lòng thử lại sau");
+                          }
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 15),
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(Icons.bar_chart, color: Colors.white,),
+                          decoration: BoxDecoration(
+                              color: Colour('#246EE9'),
+                              borderRadius: const BorderRadius.all(Radius.circular(10)),
+                              boxShadow: [
+                                const BoxShadow(
+                                    color: Color.fromRGBO(151, 161, 204, 0.5),
+                                    offset: Offset(
+                                        2,2
+                                    ),
+                                    blurRadius: 3,
+                                    spreadRadius: 0
+                                )
+                              ]
+                          ),
+                        ),
+                      ),
+                    ],
+                  ))
                 ],
               ),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black26,
-                        spreadRadius: 0,
-                        blurRadius: 2,
-                        offset: Offset(-2, -2)
-                    )
-                  ]
-              ),
-            )
-          ],
+            ],
+          ),
+          decoration: const BoxDecoration(
+              color: Colors.white
+          ),
         )
     ) : Container();
   }
@@ -1116,43 +1013,6 @@ class GisMapViewState extends State<GisMapView> {
   void recenterMap() {
     globalMapController.move((mapCenter != LatLng(0,0) ? mapCenter : LatLng(10.428053, 106.829196)), 10);
     clearFocusLogger();
-  }
-
-  List<Widget> _buildChannelValues(Map<ChannelMeasure, double> mapChannelValues){
-    List<Widget> resultWidgets = [];
-    int count = 0;
-    mapChannelValues.forEach((key, value) {
-      if(count < 3) {
-        resultWidgets.add(
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(left: 10, right: 10),
-                padding: const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 5),
-                      child: Text(key.channelName),
-                    ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text("${value != null ? value.toStringAsFixed(1) : "0"} (${key?.unit ?? ""})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[700]),),
-                    )
-                  ],
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                    border: Border.all(color: Colors.black26, width: 1)
-                ),
-              ),
-            )
-        );
-      }
-      count++;
-    });
-
-    return resultWidgets;
   }
 
   List<Widget> VisibilityLogger() {
@@ -1218,40 +1078,29 @@ class GisMapViewState extends State<GisMapView> {
   List<Widget> ListLogger () {
     List<Widget> resultWidget = List<Widget>();
     for(int i = 0; i < listLoggerPoints.length; i++) {
-
-      LoggerData a;
-      try {
-        a = storedData.where((storedElement) => storedElement.objName == listLoggerPoints.elementAt(i).maLogger).first;
-      }
-      catch(e) {
-        a = null;
-      }
-
-      if(a != null) {
-        resultWidget.add(
-            GestureDetector(
-                onTap: (){
-                  globalMapController.move(listLoggerPoints.elementAt(i).position, 15);
-                  setState(() {
-                    clearFocusLogger();
-                    listLoggerPoints.elementAt(i).isFocused = true;
-                    currentPoint = listLoggerPoints.elementAt(i);
-                    isInformation = true;
-                    isViewMenu = false;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  child: Text(listLoggerPoints.elementAt(i).tenLogger.trim() == "" ? "Chưa có" : listLoggerPoints.elementAt(i).tenLogger.trim()),
-                  decoration: BoxDecoration(
-                      border: Border(
-                          top: BorderSide(width: 1, color: Colour("#D1DBEE"))
-                      )
-                  ),
-                )
-            )
-        );
-      }
+      resultWidget.add(
+          GestureDetector(
+              onTap: (){
+                globalMapController.move(listLoggerPoints.elementAt(i).position, 15);
+                setState(() {
+                  clearFocusLogger();
+                  listLoggerPoints.elementAt(i).isFocused = true;
+                  currentPoint = listLoggerPoints.elementAt(i);
+                  isInformation = true;
+                  isViewMenu = false;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                child: Text(listLoggerPoints.elementAt(i).tenLogger.trim() == "" ? "Chưa có" : listLoggerPoints.elementAt(i).tenLogger.trim()),
+                decoration: BoxDecoration(
+                    border: Border(
+                        top: BorderSide(width: 1, color: Colour("#D1DBEE"))
+                    )
+                ),
+              )
+          )
+      );
     }
     return resultWidget;
   }

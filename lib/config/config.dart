@@ -10,7 +10,6 @@ import 'package:inet/views/map_view.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/alarm_logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../models/chart_data.dart';
 import '../models/logger_data.dart';
 import 'package:flutter_map_arcgis/layers/feature_layer_options.dart' as arcgis;
 
@@ -64,7 +63,7 @@ List<DashboardModel> listDashboardModel = new List<DashboardModel>();
 
 String currentDashboard = "";
 
-Map<String, bool> isReceivedChartDashboard = new Map<String, bool>();
+Map<int, bool> isReceivedChartDashboard = new Map<int, bool>();
 
 Map<int, bool> isReceivedChartQuery = new Map<int, bool>();
 Map<int, String> mapNameChartQuery = new Map<int, String>();
@@ -79,7 +78,3 @@ GlobalKey<LoginState> loginKey = GlobalKey();
 GlobalKey<DashboardViewState> dashboardKey = GlobalKey();
 GlobalKey<GisMapViewState> mapKey = GlobalKey();
 GlobalKey<MyHomePageState> homeKey = GlobalKey();
-
-List<String> listColors = ["#775ecc", "#2191f6", "#fa4063", "#32e499", "#fbaf37"];
-
-Map<int, List<List<ChartData>>> mapAllChartData = <int, List<List<ChartData>>>{};
