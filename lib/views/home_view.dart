@@ -112,7 +112,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: Scaffold(
               backgroundColor: Colors.white,
               appBar: AppBar(
-                title: Text("Monitor", style: TextStyle(color: Colour("#051639")),),
+                title: Text("Quản lý logger", style: TextStyle(color: Colour("#051639")),),
                 centerTitle: true,
                 backgroundColor: Colors.white,
                 elevation: 0,
@@ -150,9 +150,9 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   controller: tabController,
                   isScrollable: true,
                   tabs: [
-                    Tab(icon: Text("Dashboard", style: Theme.of(context).textTheme.subtitle1,)),
-                    Tab(icon: Text("Datatable", style: Theme.of(context).textTheme.subtitle1,)),
-                    Tab(icon: Text("Map", style: Theme.of(context).textTheme.subtitle1,)),
+                    Tab(icon: Text("Bảng điều khiển", style: Theme.of(context).textTheme.subtitle1,)),
+                    Tab(icon: Text("Bảng dữ liệu", style: Theme.of(context).textTheme.subtitle1,)),
+                    Tab(icon: Text("Bản đồ", style: Theme.of(context).textTheme.subtitle1,)),
                   ],
                 ),
 
