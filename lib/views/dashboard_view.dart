@@ -5,6 +5,7 @@ import 'package:colour/colour.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inet/models/chart_data_id.dart';
 import 'package:inet/models/piechart_data.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -900,7 +901,7 @@ class DashboardViewState extends State<DashboardView> {
     );
   }
 
-  void setChartChanged_dashboard(String result, List<DashboardElement> listChartDashboard, int socketID, int idx, String title) {
+  void setChartChanged_dashboard(String result, List<DashboardElement> listChartDashboard, int socketID, int idx, String title, {List<String> listLoggerID, List<String> listChannel}) {
     if(mounted && isReceivedChartDashboard["$socketID-$idx"] == false && result.replaceAll("[]", "").isNotEmpty) {
       isReceivedChartDashboard["$socketID-$idx"] = true;
       if(mounted) {
@@ -954,7 +955,10 @@ class DashboardViewState extends State<DashboardView> {
 
             if(mapAllChartData[idx] == null || mapAllChartData[idx].isEmpty) {
               mapAllChartData[idx] = [];
-              mapAllChartData[idx].add(currentChartData);
+              ChartDataID temp = ChartDataID()
+              ..id = ""
+              ..chartData = currentChartData;
+              mapAllChartData[idx].add(temp);
               int findIdx;
               try {
                 findIdx = listChartDashboard.elementAt(0).id;
@@ -963,7 +967,8 @@ class DashboardViewState extends State<DashboardView> {
                 findIdx = null;
               }
 
-              Widget chartChild = MyChart(mapAllChartData[idx], title: "Logger: ${temp.loggerName}, channel: ${temp.listChannels.elementAt(0)??""}");
+
+              Widget chartChild = MyChart(mapAllChartData[idx], title: title, listLoggerID: listLoggerID, listChannel: listChannel,);
 
               setState(() {
                 listChartsWidgets.add(
@@ -999,7 +1004,10 @@ class DashboardViewState extends State<DashboardView> {
             }
             else {
               setState(() {
-                mapAllChartData[idx].add(currentChartData);
+                ChartDataID temp = ChartDataID()
+                  ..id = ""
+                  ..chartData = currentChartData;
+                mapAllChartData[idx].add(temp);
               });
             }
           }
@@ -1011,10 +1019,10 @@ class DashboardViewState extends State<DashboardView> {
 
         isSendingQuery = false;
         isReceivedDashboardChart = false;
+        mapAllChartData.clear();
+
       }
     }
-
-
   }
 
   void buildListDashboard() {
@@ -1385,10 +1393,10 @@ class DashboardViewState extends State<DashboardView> {
         
         listChartQuery.forEach((key, value) {
           List<DashboardElement> listElements = value;
-          String title = "Loggers: ${listElements.map((e) => e.loggerID).toList()}";
+          String title = "Loggers: ${listElements.map((e) => e.loggerID).toSet().toList()}\nChannels: ${listElements.map((e) => e.rawName).toSet().toList()}";
           for (var element in listSocket) {
             isReceivedChartDashboard["$socketID-$idx"] = false;
-            socketService.getDashboardDataChart(value, setChartChanged_dashboard, element, socketID, idx, title);
+            socketService.getDashboardDataChart(value, setChartChanged_dashboard, element, socketID, idx, title, listLoggerId: listElements.map((e) => e.loggerID).toList(), listChannel: listElements.map((e) => e.rawName).toList());
             idx++;
           }
         });

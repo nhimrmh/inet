@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:inet/models/alarm_type.dart';
 import 'package:inet/models/channel_measure.dart';
+import 'package:inet/models/chart_data_id.dart';
 import 'package:inet/models/dashboard_model.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:inet/models/logger_point.dart';
@@ -68,8 +69,8 @@ Map<String, bool> isReceivedChartDashboard = new Map<String, bool>();
 
 Map<int, bool> isReceivedChartQuery = new Map<int, bool>();
 Map<int, String> mapNameChartQuery = new Map<int, String>();
-
 Map<String, bool> mapReceiveGis = new Map<String, bool>();
+Map<String, bool> mapIsChartChannel = <String, bool>{};
 
 LatLng mapCenter = LatLng(0, 0);
 
@@ -82,4 +83,4 @@ GlobalKey<MyHomePageState> homeKey = GlobalKey();
 
 List<String> listColors = ["#775ecc", "#2191f6", "#fa4063", "#32e499", "#fbaf37"];
 
-Map<int, List<List<ChartData>>> mapAllChartData = <int, List<List<ChartData>>>{};
+Map<int, List<ChartDataID>> mapAllChartData = <int, List<ChartDataID>>{};
