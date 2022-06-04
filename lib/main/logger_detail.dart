@@ -17,16 +17,13 @@ class LoggerDetail extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return LoggerDetailState(data);
+    return LoggerDetailState();
   }
 
 }
 
 class LoggerDetailState extends State<LoggerDetail> {
-  LoggerData data;
-  LoggerDetailState(this.data);
-
-  List<bool> isExpanded = new List<bool>();
+  List<bool> isExpanded = [];
 
   String currentAddress = "";
   String currentName = "";
@@ -36,7 +33,7 @@ class LoggerDetailState extends State<LoggerDetail> {
     super.initState();
 
     try {
-      LoggerPoint tempAddress = listAddresses.where((element) => element.maLogger == data.objName).first;
+      LoggerPoint tempAddress = listAddresses.where((element) => element.maLogger == widget.data.objName).first;
       if(tempAddress != null) {
         if(tempAddress.dma != null && tempAddress.dma != "") {
           currentAddress = tempAddress.dma;
@@ -65,7 +62,7 @@ class LoggerDetailState extends State<LoggerDetail> {
     }
   }
 
-  List<Widget> buildChilderDetail(Map<int, double> details, String currentChannel) {
+  List<Widget> buildChildrenDetail(Map<int, double> details, String currentChannel) {
     ChannelMeasure currentMeasure = new ChannelMeasure();
     try {
       currentMeasure = listChannelMeasure.where((measure) => measure.channelID == currentChannel).first;
@@ -118,8 +115,8 @@ class LoggerDetailState extends State<LoggerDetail> {
       }
 
       resultWidgets.add(
-          new Container(
-            margin: i == 0 ? EdgeInsets.only(left: 25, right: 25) : i != (loggerData.listElements.length - 1) ? EdgeInsets.only(left: 25, right: 25, top: 15) : EdgeInsets.only(left: 25, right: 25, top: 15, bottom: 15),
+          Container(
+            margin: i == 0 ? EdgeInsets.only(left: 10, right: 10) : i != (loggerData.listElements.length - 1) ? EdgeInsets.only(left: 10, right: 10, top: 15) : EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
             padding: EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -155,7 +152,7 @@ class LoggerDetailState extends State<LoggerDetail> {
                     ) : Container()
                   ],
                 ),
-                children: buildChilderDetail(loggerData.listElements.elementAt(i).value, loggerData.listElements.elementAt(i).fieldName),
+                children: buildChildrenDetail(loggerData.listElements.elementAt(i).value, loggerData.listElements.elementAt(i).fieldName),
                 tilePadding: EdgeInsets.zero,
                 onExpansionChanged: (state){
                   setState(() {
@@ -189,46 +186,9 @@ class LoggerDetailState extends State<LoggerDetail> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return GestureDetector(
-      onTap: (){
-
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text("Thông số", style: TextStyle(color: Colour("#051639")),),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            Container(
-                margin: EdgeInsets.only(right: 25),
-                child: new Icon(Icons.bar_chart, color: Colour("#051639"),)
-            )
-          ],
-          leading: IconButton(
-              onPressed: (){
-                Navigator.of(context).pop();
-              },
-              icon: Icon(Icons.arrow_back, color: Colour("#051639"),)
-          ),
-        ),
-        body: Column(
-          children: [
-            Container(
-              margin: EdgeInsets.only(top: 20, left: 25, right: 25),
-              child: Text(currentName != "" ? (currentName + (data.objName != null ? (" (" + data.objName +  ")") : "")) : (data.objName ?? ""), style: Theme.of(context).textTheme.headline1,),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10, bottom: 20),
-              child: Text(currentDMA.trim() == "" ? "Chưa có DMA" : currentDMA, style: Theme.of(context).textTheme.subtitle2),
-            ),
-            Expanded(child: ListView(
-              children: buidlLoggerDetail(data),
-            ))
-          ],
-        ),
-      )
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: buidlLoggerDetail(widget.data),
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:inet/classes/get_unit_name.dart';
 import 'package:inet/models/chart_data_id.dart';
 import 'package:inet/models/piechart_data.dart';
+import 'package:inet/views/logger_information.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../classes/get_date.dart';
@@ -1068,7 +1069,7 @@ class DashboardViewState extends State<DashboardView> {
                       context,
                       PageTransition(
                         type: PageTransitionType.rightToLeft,
-                        child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == element.loggerID).first),
+                        child: LoggerInformation(storedData.where((storedElement) => storedElement.objName == element.loggerID).first),
                       ),
                     );
                   },
@@ -1122,7 +1123,7 @@ class DashboardViewState extends State<DashboardView> {
                       context,
                       PageTransition(
                         type: PageTransitionType.rightToLeft,
-                        child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == element.loggerID).first),
+                        child: LoggerInformation(storedData.where((storedElement) => storedElement.objName == element.loggerID).first),
                       ),
                     );
                   },
@@ -1227,7 +1228,7 @@ class DashboardViewState extends State<DashboardView> {
                           context,
                           PageTransition(
                             type: PageTransitionType.rightToLeft,
-                            child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == alarmLogger.loggerID).first),
+                            child: LoggerInformation(storedData.where((storedElement) => storedElement.objName == alarmLogger.loggerID).first),
                           ),
                         );
                       },
@@ -1279,7 +1280,7 @@ class DashboardViewState extends State<DashboardView> {
                           context,
                           PageTransition(
                             type: PageTransitionType.rightToLeft,
-                            child: LoggerDetail(storedData.where((storedElement) => storedElement.objName == alarmLogger.loggerID).first),
+                            child: LoggerInformation(storedData.where((storedElement) => storedElement.objName == alarmLogger.loggerID).first),
                           ),
                         );
                       },
