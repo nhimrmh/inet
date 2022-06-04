@@ -63,7 +63,7 @@ class LoggerDetailState extends State<LoggerDetail> {
   }
 
   List<Widget> buildChildrenDetail(Map<int, double> details, String currentChannel) {
-    ChannelMeasure currentMeasure = new ChannelMeasure();
+    ChannelMeasure currentMeasure = ChannelMeasure();
     try {
       currentMeasure = listChannelMeasure.where((measure) => measure.channelID == currentChannel).first;
     }
@@ -71,29 +71,29 @@ class LoggerDetailState extends State<LoggerDetail> {
       currentMeasure = null;
     }
 
-    List<Widget> resultWidgets = new List<Widget>();
+    List<Widget> resultWidgets = [];
     details.forEach((key, value) {
       resultWidgets.add(
           Container(
-            margin: EdgeInsets.only(top: 3, bottom: 3),
-            padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
+            margin: const EdgeInsets.only(top: 3, bottom: 3),
+            padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                     value.toString() + (currentMeasure != null ? " (" + currentMeasure.unit + ")" : "")
                       ?? "Chưa có dữ liệu",
-                    style: Theme.of(context).textTheme.subtitle1.merge(TextStyle(fontWeight: FontWeight.w400))
+                    style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400))
                 ),
                 Text(
                     getDateString(key),
-                    style: Theme.of(context).textTheme.subtitle1.merge(TextStyle(fontWeight: FontWeight.w400))
+                    style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400))
                 ),
               ],
             ),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5))
+              borderRadius: BorderRadius.all(const Radius.circular(5))
             ),
           )
       );
@@ -102,83 +102,84 @@ class LoggerDetailState extends State<LoggerDetail> {
   }
 
   List<Widget> buidlLoggerDetail(LoggerData loggerData) {
-    List<Widget> resultWidgets = new List<Widget>();
+    List<Widget> resultWidgets = [];
     for(int i = 0; i < loggerData.listElements.length; i++) {
       isExpanded.add(false);
 
-      ChannelMeasure currentMeasure = new ChannelMeasure();
+      ChannelMeasure currentMeasure = ChannelMeasure();
       try {
         currentMeasure = listChannelMeasure.where((measure) => measure.channelID == loggerData.listElements.elementAt(i).fieldName).first;
       }
       catch(e) {
         currentMeasure = null;
       }
-
-      resultWidgets.add(
-          Container(
-            margin: i == 0 ? EdgeInsets.only(left: 10, right: 10) : i != (loggerData.listElements.length - 1) ? EdgeInsets.only(left: 10, right: 10, top: 15) : EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
-            padding: EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
-            child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                title: Column (
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(bottom: 10),
-                      child: Text(
-                          currentMeasure != null ? currentMeasure.channelName : loggerData.listElements.elementAt(i).fieldName,
-                          style: Theme.of(context).textTheme.headline1),
-                    ),
-                    !isExpanded.elementAt(i) ? Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      if(listChannelSelect.contains(loggerData.listElements.elementAt(i).fieldName)) {
+        resultWidgets.add(
+            Container(
+              margin: i == 0 ? const EdgeInsets.only(left: 10, right: 10) : i != (loggerData.listElements.length - 1) ? const EdgeInsets.only(left: 10, right: 10, top: 15) : const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
+              padding: const EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
+              child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    title: Column (
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
                           child: Text(
-                              (loggerData.listElements.elementAt(i).value.values != null && loggerData.listElements.elementAt(i).value.values.length > 0) ?
-                              loggerData.listElements.elementAt(i).value.values.last.toString() + (currentMeasure != null ? " (" + currentMeasure.unit + ")" : "") : "Chưa có dữ liệu",
-                              style: Theme.of(context).textTheme.subtitle1.merge(TextStyle(fontWeight: FontWeight.w400))
-                          ),
+                              currentMeasure != null ? currentMeasure.channelName : loggerData.listElements.elementAt(i).fieldName,
+                              style: Theme.of(context).textTheme.headline1),
                         ),
-                        Expanded(
-                          child: Text(
-                              (loggerData.listElements.elementAt(i).value.keys != null && loggerData.listElements.elementAt(i).value.keys.length > 0) ?
-                              getDateString(loggerData.listElements.elementAt(i).value.keys.last) : "",
-                              style: Theme.of(context).textTheme.subtitle1.merge(TextStyle(fontWeight: FontWeight.w400))
-                          ),
-                        ),
+                        !isExpanded.elementAt(i) ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                  (loggerData.listElements.elementAt(i).value.values != null && loggerData.listElements.elementAt(i).value.values.isNotEmpty) ?
+                                  loggerData.listElements.elementAt(i).value.values.last.toString() + (currentMeasure != null ? " (" + currentMeasure.unit + ")" : "") : "Chưa có dữ liệu",
+                                  style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400))
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                  (loggerData.listElements.elementAt(i).value.keys != null && loggerData.listElements.elementAt(i).value.keys.isNotEmpty) ?
+                                  getDateString(loggerData.listElements.elementAt(i).value.keys.last) : "",
+                                  style: Theme.of(context).textTheme.subtitle1.merge(const TextStyle(fontWeight: FontWeight.w400))
+                              ),
+                            ),
+                          ],
+                        ) : Container()
                       ],
-                    ) : Container()
-                  ],
-                ),
-                children: buildChildrenDetail(loggerData.listElements.elementAt(i).value, loggerData.listElements.elementAt(i).fieldName),
-                tilePadding: EdgeInsets.zero,
-                onExpansionChanged: (state){
-                  setState(() {
-                    isExpanded[i] = state;
-                  });
-                },
-                initiallyExpanded: isExpanded.elementAt(i),
-              )
-            ),
-            decoration: BoxDecoration(
-              // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
-                color: (loggerData.listElements.elementAt(i).value.values != null && loggerData.listElements.elementAt(i).value.values.length > 0) ? Colour('#ECF2FF') : Colors.blueGrey[100],
-                borderRadius: BorderRadius.all(Radius.circular(15)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Color.fromRGBO(151, 161, 204, 0.1),
-                      offset: Offset(
-                          2,2
-                      ),
-                      blurRadius: 3,
-                      spreadRadius: 1
+                    ),
+                    children: buildChildrenDetail(loggerData.listElements.elementAt(i).value, loggerData.listElements.elementAt(i).fieldName),
+                    tilePadding: EdgeInsets.zero,
+                    onExpansionChanged: (state){
+                      setState(() {
+                        isExpanded[i] = state;
+                      });
+                    },
+                    initiallyExpanded: isExpanded.elementAt(i),
                   )
-                ]
-            ),
-          )
-      );
+              ),
+              decoration: BoxDecoration(
+                // color: loggersList.elementAt(i).isAlarm ? Colour('#ECF2FF') : Colour('#ECF2FF'),
+                  color: (loggerData.listElements.elementAt(i).value.values != null && loggerData.listElements.elementAt(i).value.values.isNotEmpty) ? Colour('#ECF2FF') : Colors.blueGrey[100],
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color.fromRGBO(151, 161, 204, 0.1),
+                        offset: Offset(
+                            2,2
+                        ),
+                        blurRadius: 3,
+                        spreadRadius: 1
+                    )
+                  ]
+              ),
+            )
+        );
+      }
     }
     return resultWidgets;
   }

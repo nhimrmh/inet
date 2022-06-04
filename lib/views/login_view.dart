@@ -883,7 +883,10 @@ class LoginState extends State<LoginPage> {
                         isDashboardProperties = true;
                       }
                       else if(key == "prop1" && isDashboardProperties) {
-                        listChannelSelect.add(value);
+                        String listChannelSelects = value.toString();
+                        listChannelSelects.replaceAll("[", "");
+                        listChannelSelects.replaceAll("]", "");
+                        listChannelSelect.addAll(listChannelSelects.split(",").map((e) => e.trim()).toList());
                       }
                     });
                     isDashboardProperties = false;
