@@ -56,7 +56,7 @@ class MainMenuState extends State<MainMenuPage> {
 
   void addMenu() {
     MenuModel dashboard = MenuModel();
-    dashboard.title = "Monitor";
+    dashboard.title = "Quản lý logger";
     dashboard.color = Colors.transparent;
     dashboard.image = "assets/dashboard.png";
     dashboard.icon = const Icon(Icons.assignment, color: Colors.white, size: 30,);
@@ -160,7 +160,7 @@ class MainMenuState extends State<MainMenuPage> {
         resultWidgets.add(
             GestureDetector(
               onTap: (){
-                if(listMenu.elementAt(i).title.trim() == "Monitor") {
+                if(listMenu.elementAt(i).title.trim() == "Quản lý logger") {
                   Navigator.push(
                     context,
                     PageTransition(
