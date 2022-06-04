@@ -230,12 +230,12 @@ class DashboardViewState extends State<DashboardView> {
           });
           if(isDashboardContent) {
             List<dynamic> listScreenElement = mapField["listScreenElement"];
-            listScreenElement.forEach((screenElement) {
+            for (var screenElement in listScreenElement) {
               Map<String, dynamic> mapScreenElement = Map<String, dynamic>.from(screenElement);
               mapScreenElement.forEach((key, value) {
                 if(key == "listSpecProp") {
                   List<dynamic> listSpecProp = value;
-                  listSpecProp.forEach((specProp) {
+                  for (var specProp in listSpecProp) {
                     Map<String, dynamic> mapSpecProp = Map<String, dynamic>.from(specProp);
                     bool isDashboardProperties = false;
                     mapSpecProp.forEach((key, value) {
@@ -268,7 +268,7 @@ class DashboardViewState extends State<DashboardView> {
                                     mapContent.forEach((key, value) {
                                       if(key == "children") {
                                         List<dynamic> listChildren = value;
-                                        listChildren.forEach((element) {
+                                        for (var element in listChildren) {
                                           Map<String, dynamic> mapChildren = Map<String, dynamic>.from(element);
                                           mapChildren.forEach((key, value) {
                                             if(key == "content") {
@@ -497,7 +497,7 @@ class DashboardViewState extends State<DashboardView> {
                                               listDashboardModel.add(tempDashbordModel);
                                             }
                                           });
-                                        });
+                                        }
                                       }
                                     });
                                   }
@@ -512,10 +512,10 @@ class DashboardViewState extends State<DashboardView> {
                       }
                       isDashboardProperties = false;
                     });
-                  });
+                  }
                 }
               });
-            });
+            }
 
           }
           isDashboardContent = false;
@@ -557,7 +557,7 @@ class DashboardViewState extends State<DashboardView> {
       mapProp1.forEach((key, value) {
         if(key == "children") {
           List<dynamic> listChildren = value;
-          listChildren.forEach((element) {
+          for (var element in listChildren) {
             Map<String, dynamic> mapChildren = Map<String, dynamic>.from(element);
             mapChildren.forEach((key, value) {
               if(key == "content") {
@@ -755,7 +755,7 @@ class DashboardViewState extends State<DashboardView> {
               }
 
             });
-          });
+          }
         }
       });
     }
@@ -911,11 +911,7 @@ class DashboardViewState extends State<DashboardView> {
           listChartsWidgets.clear();
         });
         if(result != null && result.trim() != "") {
-
           List<dynamic> jsonResult = json.decode(result);
-
-
-
           for (var jsonField in jsonResult) {
             ///data of chart
             List<ChartData> currentChartData = [];
@@ -1082,7 +1078,7 @@ class DashboardViewState extends State<DashboardView> {
                       children: [
                         Container(
                           padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                          margin: const EdgeInsets.only(bottom: 5, top: 5),
+                          margin: const EdgeInsets.only(bottom: 10, top: 5),
                           child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
                           decoration: BoxDecoration(
                               color: Colour("#243347"),
@@ -1090,7 +1086,7 @@ class DashboardViewState extends State<DashboardView> {
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.only(bottom: 15),
+                          margin: const EdgeInsets.only(bottom: 10),
                           child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
                         ),
                         Column(
@@ -1136,7 +1132,7 @@ class DashboardViewState extends State<DashboardView> {
                       children: [
                         Container(
                           padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                          margin: const EdgeInsets.only(bottom: 5, top: 5),
+                          margin: const EdgeInsets.only(bottom: 10, top: 5),
                           child: Text(element.loggerName + " (" + element.loggerID + ")", style: Theme.of(context).textTheme.headline1.merge(TextStyle(color: Colors.white, fontSize: 14))),
                           decoration: BoxDecoration(
                               color: Colour("#243347"),
@@ -1144,7 +1140,7 @@ class DashboardViewState extends State<DashboardView> {
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.only(bottom: 15),
+                          margin: const EdgeInsets.only(bottom: 10),
                           child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: TextStyle(fontSize: 12),),
                         ),
                         Column(
