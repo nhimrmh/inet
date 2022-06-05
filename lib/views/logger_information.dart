@@ -121,7 +121,7 @@ class LoggerInformationState extends State<LoggerInformation> {
             ),
           ),
           isLoadingData ? Container(
-            height: 200,
+            height: 300,
             margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
             child: loading(Theme.of(context), "chart"),
             decoration: BoxDecoration(
