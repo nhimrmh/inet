@@ -1052,7 +1052,7 @@ class DashboardViewState extends State<DashboardView> {
         }
       }
 
-      if(a != null || element.type == 2 || (element.listElement != null && element.listElement.isNotEmpty)) {
+      if(a != null || element.type == 2 || (element.listElement != null && element.listElement.isNotEmpty) || (element.listLoggerId != null && element.listLoggerId.isNotEmpty)) {
         if(element.type == 0) {
           setState(() {
             listDashboardWidgets.add(
