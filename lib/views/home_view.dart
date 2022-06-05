@@ -215,8 +215,8 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               )
           ),
-          isLoadingData ? Container(
-            height: 200,
+          isLoadingData && (chartData == null || chartData.isEmpty) ? Container(
+            height: 300,
             margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
             child: loading(Theme.of(context), "chart"),
             decoration: BoxDecoration(
@@ -227,7 +227,14 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
             width: double.infinity,
             height: 300,
-            child: MyChart(chartData, title: "Loggers: ${listCurrentLoggers.toSet().toList()}, Channels: ${listCurrentChannels.toSet().toList()}", listLoggerID: listCurrentLoggers, listChannel: listCurrentChannels,),
+            child: Stack(
+              children: [
+                MyChart(chartData, title: "Loggers: ${listCurrentLoggers.toSet().toList()}, Channels: ${listCurrentChannels.toSet().toList()}", listLoggerID: listCurrentLoggers, listChannel: listCurrentChannels,),
+                isLoadingData ? Center(
+                  child: miniLoading(),
+                ) : Container()
+              ],
+            )
           ) : Container()),
           // ChannelChart(isLoadingData, lineChart, chartData, currentChannel, currentChannel, setChartChanged, storedData),
           Container(
@@ -696,6 +703,8 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
             chartData.add(temp);
             flagChartClicked = false;
+
+            isLoadingData = false;
           }
         });
       }
