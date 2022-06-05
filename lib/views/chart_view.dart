@@ -16,7 +16,7 @@ class MyChart extends StatelessWidget {
 
   MyChart(this.data, {this.title, this.listLoggerID, this.listChannel});
 
-  ZoomPanBehavior _zoomPanBehavior = ZoomPanBehavior(
+  final ZoomPanBehavior _zoomPanBehavior = ZoomPanBehavior(
     // Enables pinch zooming
       enablePinching: true,
       enableDoubleTapZooming: true,
