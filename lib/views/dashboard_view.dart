@@ -906,70 +906,79 @@ class DashboardViewState extends State<DashboardView> {
   void setChartChanged_dashboard(String result, List<DashboardElement> listChartDashboard, int socketID, int idx, String title, {List<String> listLoggerID, List<String> listChannel}) {
     if(mounted && isReceivedChartDashboard["$socketID-$idx"] == false && result.replaceAll("[]", "").isNotEmpty) {
       isReceivedChartDashboard["$socketID-$idx"] = true;
-      if(mounted) {
-        setState(() {
-          listChartsWidgets.clear();
-        });
-        if(result != null && result.trim() != "") {
-          List<dynamic> jsonResult = json.decode(result);
-          for (var jsonField in jsonResult) {
-            ///data of chart
-            List<ChartData> currentChartData = [];
-            int previousTime = 0;
-            Map<String, dynamic> mapElement = Map<String, dynamic>.from(jsonField);
-            ChartDashboardValue temp = ChartDashboardValue();
-            mapElement.forEach((key, value) {
-              temp.listChannels = List<String>();
+      setState(() {
+        listChartsWidgets.clear();
+      });
+      if(result != null && result.trim() != "") {
+        List<dynamic> jsonResult = json.decode(result);
+        for (var jsonField in jsonResult) {
+          ///data of chart
+          List<ChartData> currentChartData = [];
+          int previousTime = 0;
+          Map<String, dynamic> mapElement = Map<String, dynamic>.from(jsonField);
+          ChartDashboardValue temp = ChartDashboardValue();
+          mapElement.forEach((key, value) {
+            temp.listChannels = List<String>();
 
-              if(key == "objName") {
-                temp.loggerName = value;
+            if(key == "objName") {
+              temp.loggerName = value;
+            }
+            else if(key == "listElement") {
+              List<dynamic> listElements = value;
+              for (var detail in listElements) {
+                Map<String, dynamic> mapField = Map<String, dynamic>.from(detail);
+                mapField.forEach((key, value) {
+                  if(key == "name") {
+                    temp.listChannels.add(value);
+                  }
+                  else if(key == "value") {
+                    Map<String, String> mapValue = Map<String, String>.from(value);
+                    mapValue.forEach((key, value) {
+                      try {
+                        ChartData tempChartData = ChartData(getDateString1(int.parse(key)), double.parse(value));
+                        currentChartData.add(tempChartData);
+                      }
+                      catch(e) {
+
+                      }
+                    });
+
+                  }
+                });
               }
-              else if(key == "listElement") {
-                List<dynamic> listElements = value;
-                for (var detail in listElements) {
-                  Map<String, dynamic> mapField = Map<String, dynamic>.from(detail);
-                  mapField.forEach((key, value) {
-                    if(key == "name") {
-                      temp.listChannels.add(value);
-                    }
-                    else if(key == "value") {
-                      Map<String, String> mapValue = Map<String, String>.from(value);
-                      mapValue.forEach((key, value) {
-                        try {
-                          ChartData tempChartData = ChartData(getDateString1(int.parse(key)), double.parse(value));
-                          currentChartData.add(tempChartData);
-                        }
-                        catch(e) {
-
-                        }
-                      });
-
-                    }
-                  });
-                }
-              }
-            });
+            }
+          });
 
 
-            if(mapAllChartData[idx] == null || mapAllChartData[idx].isEmpty) {
-              mapAllChartData[idx] = [];
-              ChartDataID temp = ChartDataID()
+          if(mapAllChartData[idx] == null || mapAllChartData[idx].isEmpty) {
+            mapAllChartData[idx] = [];
+            ChartDataID temp = ChartDataID()
               ..id = ""
               ..chartData = currentChartData;
-              mapAllChartData[idx].add(temp);
-              int findIdx;
-              try {
-                findIdx = listChartDashboard.elementAt(0).id;
-              }
-              catch(e) {
-                findIdx = null;
-              }
+            mapAllChartData[idx].add(temp);
+            int findIdx;
+            try {
+              findIdx = listChartDashboard.elementAt(0).id;
+            }
+            catch(e) {
+              findIdx = null;
+            }
 
 
-              Widget chartChild = MyChart(mapAllChartData[idx], title: title, listLoggerID: listLoggerID, listChannel: listChannel,);
+            Widget chartChild = MyChart(mapAllChartData[idx], title: title, listLoggerID: listLoggerID, listChannel: listChannel,);
 
-              setState(() {
-                listChartsWidgets.add(
+            setState(() {
+              listChartsWidgets.add(
+                  Container(
+                    margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+                    width: double.infinity,
+                    height: 300,
+                    child: chartChild,
+                  )
+              );
+              if(findIdx != null && listDashboardWidgets.length > findIdx) {
+                listDashboardWidgets.insert(
+                    findIdx,
                     Container(
                       margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
                       width: double.infinity,
@@ -977,49 +986,37 @@ class DashboardViewState extends State<DashboardView> {
                       child: chartChild,
                     )
                 );
-                if(findIdx != null && listDashboardWidgets.length > findIdx) {
-                  listDashboardWidgets.insert(
-                      findIdx,
-                      Container(
-                        margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-                        width: double.infinity,
-                        height: 300,
-                        child: chartChild,
-                      )
-                  );
-                }
-                else {
-                  listDashboardWidgets.add(
-                      Container(
-                        margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
-                        width: double.infinity,
-                        height: 300,
-                        child: chartChild,
-                      )
-                  );
-                }
-              });
-            }
-            else {
-              setState(() {
-                ChartDataID temp = ChartDataID()
-                  ..id = ""
-                  ..chartData = currentChartData;
-                mapAllChartData[idx].add(temp);
-              });
-            }
+              }
+              else {
+                listDashboardWidgets.add(
+                    Container(
+                      margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+                      width: double.infinity,
+                      height: 300,
+                      child: chartChild,
+                    )
+                );
+              }
+            });
           }
-
+          else {
+            setState(() {
+              ChartDataID temp = ChartDataID()
+                ..id = ""
+                ..chartData = currentChartData;
+              mapAllChartData[idx].add(temp);
+            });
+          }
         }
-        setState(() {
-          isLoadingDashboard = false;
-        });
-
-        isSendingQuery = false;
-        isReceivedDashboardChart = false;
-        mapAllChartData.clear();
 
       }
+      setState(() {
+        isLoadingDashboard = false;
+      });
+
+      isSendingQuery = false;
+      isReceivedDashboardChart = false;
+      mapAllChartData.clear();
     }
   }
 
