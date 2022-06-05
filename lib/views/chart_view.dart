@@ -11,6 +11,8 @@ class MyChart extends StatelessWidget {
   String title;
   List<String> listLoggerID;
   List<String> listChannel;
+  String previousLoggerName = "";
+  String previousLoggerChannel = "";
 
   MyChart(this.data, {this.title, this.listLoggerID, this.listChannel});
 
@@ -30,14 +32,32 @@ class MyChart extends StatelessWidget {
     int idx = 0;
     List<LineSeries<ChartData, String>> resultWidgets = [];
     for(var item in data) {
+      String _loggerName = "";
+      String _channelName = "";
+      try {
+        _loggerName = listLoggerID?.elementAt(idx)??"";
+        previousLoggerName = _loggerName;
+      }
+      catch(e) {
+        _loggerName = previousLoggerName;
+      }
+
+      try {
+        _channelName = listChannel?.elementAt(idx)??"";
+        previousLoggerChannel = _channelName;
+      }
+      catch(e) {
+        _channelName = previousLoggerChannel;
+      }
+
       resultWidgets.add(LineSeries<ChartData, String>(
           dataSource: item.chartData,
           xValueMapper: (ChartData data, _) => data.timeStamp.toString(),
           yValueMapper: (ChartData data, _) => data.value,
-          name: "${listLoggerID?.elementAt(idx)??""}(${listChannel?.elementAt(idx)??""})",
+          name: "$_loggerName($_channelName)",
 
           // Enable data label
-          dataLabelSettings: DataLabelSettings(isVisible: false))
+          dataLabelSettings: const DataLabelSettings(isVisible: false))
       );
       idx++;
     }
@@ -54,16 +74,23 @@ class MyChart extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title??"", style: const TextStyle(color: Colors.white),),
-                GestureDetector(
-                  onTap: () => _zoomPanBehavior.reset(),
-                  child: const Icon(Icons.replay, color: Colors.white,),
+                Expanded(child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(title??"", style: const TextStyle(color: Colors.white),)
+                ),),
+                Container(
+                  margin: const EdgeInsets.only(left: 10),
+                  child: GestureDetector(
+                    onTap: () => _zoomPanBehavior.reset(),
+                    child: const Icon(Icons.replay, color: Colors.white,),
+                  ),
                 )
               ],
             ),
             decoration: BoxDecoration(
               color: Colors.blue,
-              border: Border.all(width: 1, color: Colors.black26)
+              border: Border.all(width: 1, color: Colors.black26),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10))
             ),
           ),
           Expanded(child: SfCartesianChart(
@@ -79,7 +106,8 @@ class MyChart extends StatelessWidget {
         ],
       ),
       decoration: BoxDecoration(
-        border: Border.all(width: 1, color: Colors.black26)
+        border: Border.all(width: 1, color: Colors.black26),
+        borderRadius: const BorderRadius.all(Radius.circular(10))
       ),
     );
   }
