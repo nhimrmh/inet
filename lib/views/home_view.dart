@@ -15,6 +15,7 @@ import 'package:inet/classes/get_logger_info.dart';
 import 'package:inet/classes/get_unit_name.dart';
 import 'package:inet/models/chart_data.dart';
 import 'package:inet/views/chart_view.dart';
+import 'package:inet/widgets/alert.dart';
 
 import 'package:latlong2/latlong.dart';
 import 'package:page_transition/page_transition.dart';
@@ -64,11 +65,12 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Timer loadTimer;
 
   //Chart variables
-  bool isLoadingData = false;
+  bool isLoadingData = false, isMoveToPosition = false;
   LineChart lineChart;
   List<ChartDataID> chartData = [];
-  String currentLogger = "", currentChannel = "";
+  String currentLogger = "", currentChannel = "", selectedLoggerForMap = "";
   List<String> listCurrentLoggers = [], listCurrentChannels = [], listCheckUnique = [];
+  LatLng currentPosition = LatLng(0, 0);
 
   @override
   void initState() {
@@ -284,6 +286,9 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if(!tabController.indexIsChanging) {
           setState(() {
             tabIdx = 0;
+            isMoveToPosition = false;
+            selectedLoggerForMap = "";
+            currentPosition = LatLng(0, 0);
             mapKey.currentState?.setIsLoadingMap(true);
           });
 
@@ -300,6 +305,9 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       case 1: {
         if(!tabController.indexIsChanging) {
           setState(() {
+            isMoveToPosition = false;
+            selectedLoggerForMap = "";
+            currentPosition = LatLng(0, 0);
             tabIdx = 1;
             mapKey.currentState?.setIsLoadingMap(true);
           });
@@ -310,9 +318,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         break;
       }
       case 2: {
-
         if(!tabController.indexIsChanging) {
-
           setState(() {
             tabIdx = 2;
             mapKey.currentState.setIsLoadingMap(true);
@@ -323,6 +329,10 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
             else {
               mapKey.currentState.setIsLoadingMap(false);
+            }
+
+            if(isMoveToPosition) {
+              mapKey.currentState.moveTo(currentPosition, selectedLoggerForMap);
             }
           });
         }
@@ -933,63 +943,96 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 )
               ]
           ),
-          child: Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              collapsedTextColor: Colors.black,
-              textColor: Colors.black,
-              tilePadding: const EdgeInsets.only(left: 10, right: 0),
-              trailing: const SizedBox(),
-              title: Container(
-                transform: Matrix4.translationValues(10, 0, 0),
-                child: Column (
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
+            children: [
+              Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  collapsedTextColor: Colors.black,
+                  textColor: Colors.black,
+                  tilePadding: const EdgeInsets.only(left: 10, right: 0),
+                  trailing: const SizedBox(),
+                  title: Container(
+                    transform: Matrix4.translationValues(10, 0, 0),
+                    child: Column (
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
+                              child: Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1.merge(const TextStyle(color: Colors.white, fontSize: 14))),
+                              decoration: BoxDecoration(
+                                  color: Colour("#243347"),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))
+                              ),
+                            ),
+                            Text(currentTime != 0 ? getDateString1(currentTime) : "", style: const TextStyle(fontSize: 12),),
+                          ],
+                        ),
                         Container(
-                          padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5,),
-                          child: Text(currentName.trim() == "" ? "Logger chưa có tên" : currentName, style: Theme.of(context).textTheme.headline1.merge(const TextStyle(color: Colors.white, fontSize: 14))),
-                          decoration: BoxDecoration(
-                              color: Colour("#243347"),
-                              borderRadius: const BorderRadius.all(Radius.circular(5))
+                          margin: const EdgeInsets.only(top: 15, bottom: 15),
+                          child: Text("Logger ID: " + loggersList.elementAt(i).objName + (currentDMA != "" ? (", " + currentDMA) : ""), style: Theme.of(context).textTheme.subtitle2),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: buildDetailLogger(loggersList.elementAt(i).listElements, loggersList.elementAt(i))
                           ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(right: 10),
-                          child: Text(currentTime != 0 ? getDateString1(currentTime) : "", style: const TextStyle(fontSize: 12),),
-                        ),
+                        )
                       ],
                     ),
+                  ),
+                  children: [
                     Container(
-                      margin: const EdgeInsets.only(top: 15, bottom: 15),
-                      child: Text("Logger ID: " + loggersList.elementAt(i).objName + (currentDMA != "" ? (", " + currentDMA) : ""), style: Theme.of(context).textTheme.subtitle2),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: buildDetailLogger(loggersList.elementAt(i).listElements, loggersList.elementAt(i))
+                      padding: const EdgeInsets.only(top: 10, bottom: 10),
+                      margin: const EdgeInsets.only(left: 10, right: 10),
+                      decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(10))
                       ),
+                      child: LoggerDetail(loggersList.elementAt(i)),
                     )
                   ],
                 ),
               ),
-              children: [
-                Container(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  margin: const EdgeInsets.only(left: 10, right: 10),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(10))
+              Container(
+                transform: Matrix4.translationValues(0, -5, 0),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: PopupMenuButton(
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          onTap: (){
+                            LoggerPoint temp = LoggerPoint();
+                            try{
+                              temp = listAddresses.where((element) => element.maLogger == loggersList.elementAt(i).objName).first;
+                            }
+                            catch(e) {
+                              temp = null;
+                            }
+
+                            if(temp != null) {
+                              currentPosition = LatLng(temp.position.latitude, temp.position.longitude);
+                              selectedLoggerForMap = loggersList.elementAt(i).objName;
+                              isMoveToPosition = true;
+                              tabController.animateTo(2);
+                            }
+                            else {
+                              showAlertDialog(context, "Không tìm thấy vị trí logger", "Vui lòng thử lại sau");
+                            }
+                          },
+                          child: const Text("Xem trên bản đồ"),
+                        ),
+                      ]
                   ),
-                  child: LoggerDetail(loggersList.elementAt(i)),
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           ),
         )
       );
