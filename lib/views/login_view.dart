@@ -745,6 +745,7 @@ class LoginState extends State<LoginPage> {
 
     List<dynamic> jsonResult = json.decode(value);
     bool isChannelSelect = false;
+    bool isChannelSelectForMap = false;
     bool isChannelMeasure = false;
     for (var field in jsonResult) {
       Map<String, dynamic> mapField = Map<String, dynamic>.from(field);
@@ -754,6 +755,9 @@ class LoginState extends State<LoginPage> {
         }
         else if(key == "name" && value == "datatable-viewer") {
           isChannelSelect = true;
+        }
+        else if(key == "name" && value == "arcgis-map-viewer") {
+          isChannelSelectForMap = true;
         }
       });
       if(isChannelMeasure) {
@@ -883,10 +887,10 @@ class LoginState extends State<LoginPage> {
                         isDashboardProperties = true;
                       }
                       else if(key == "prop1" && isDashboardProperties) {
-                        String listChannelSelects = value.toString();
-                        listChannelSelects.replaceAll("[", "");
-                        listChannelSelects.replaceAll("]", "");
-                        listChannelSelect.addAll(listChannelSelects.split(",").map((e) => e.trim()).toList());
+                        String tempListChannelSelects = value.toString();
+                        tempListChannelSelects.replaceAll("[", "");
+                        tempListChannelSelects.replaceAll("]", "");
+                        listChannelSelect.addAll(tempListChannelSelects.split(",").map((e) => e.trim()).toList());
                       }
                     });
                     isDashboardProperties = false;
@@ -896,10 +900,46 @@ class LoginState extends State<LoginPage> {
             }
           });
         }
-
+      }
+      else if(isChannelSelectForMap) {
+        List<dynamic> listScreenElement = mapField["listScreenElement"];
+        for (var screenElement in listScreenElement) {
+          Map<String, dynamic> mapScreenElement = Map<String, dynamic>.from(screenElement);
+          bool isLinePlaceholder = false;
+          mapScreenElement.forEach((key, value) {
+            if(key == "objId" && value == "line-placeholder") {
+              isLinePlaceholder = true;
+            }
+            if(key == "listSpecProp" && isLinePlaceholder) {
+              List<dynamic> listSpecProp = value;
+              for (var specProp in listSpecProp) {
+                Map<String, dynamic> mapSpecProp = Map<String, dynamic>.from(specProp);
+                bool isDashboardProperties = false;
+                mapSpecProp.forEach((key, value) {
+                  if(key == "properties") {
+                    Map<String, dynamic> mapProperty = Map<String, dynamic>.from(value);
+                    mapProperty.forEach((key, value) {
+                      if(key == "style" && value == "channel-select") {
+                        isDashboardProperties = true;
+                      }
+                      else if(key == "prop1" && isDashboardProperties) {
+                        String tempListChannelSelects = value.toString();
+                        tempListChannelSelects.replaceAll("[", "");
+                        tempListChannelSelects.replaceAll("]", "");
+                        listChannelSelectForMap.addAll(tempListChannelSelects.split(",").map((e) => e.trim()).toList());
+                      }
+                    });
+                    isDashboardProperties = false;
+                  }
+                });
+              }
+            }
+          });
+        }
       }
       isChannelMeasure = false;
       isChannelSelect = false;
+      isChannelSelectForMap = false;
     }
   }
 
