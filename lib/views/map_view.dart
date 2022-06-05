@@ -877,8 +877,18 @@ class GisMapViewState extends State<GisMapView> {
             ),
           ],
         ),
-        decoration: const BoxDecoration(
-            color: Colors.white
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black, width: 1),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black26,
+                  spreadRadius: 0,
+                  blurRadius: 3,
+                  offset: Offset(-3, -3)
+              )
+            ]
         ),
       ),
     );
@@ -1133,15 +1143,16 @@ class GisMapViewState extends State<GisMapView> {
                   ),
                 ],
               ),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
-                  boxShadow: [
+                  border: Border.all(color: Colors.black, width: 1),
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                  boxShadow: const [
                     BoxShadow(
                         color: Colors.black26,
                         spreadRadius: 0,
-                        blurRadius: 2,
-                        offset: Offset(-2, -2)
+                        blurRadius: 3,
+                        offset: Offset(-3, -3)
                     )
                   ]
               ),

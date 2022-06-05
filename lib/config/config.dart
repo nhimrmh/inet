@@ -28,6 +28,7 @@ String username_config = "";
 List<ChannelMeasure> listChannelMeasure = new List<ChannelMeasure>();
 
 List<String> listChannelSelect = new List<String>();
+List<String> listChannelSelectForMap = new List<String>();
 
 List<LoggerPoint> listAddresses = new List<LoggerPoint>();
 
