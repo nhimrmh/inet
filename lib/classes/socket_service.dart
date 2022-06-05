@@ -128,6 +128,40 @@ class SocketService {
     });
   }
 
+  void getMultipleDataChart(List<DashboardElement> listChartDashboard, int numberOfRecords, String fromDate, String toDate, Function function, IO.Socket currentSocket, int currentIdx, int total) {
+    String myJSON;
+
+    Random random = new Random();
+    int randomID = random.nextInt(100) + 1;
+
+    myJSON  = "{\"id\":" + randomID.toString() + ", \"command\": \"query\", \"event\":\"dataset\",\"fixInterval\":null,\"listTag\": [";
+
+    for(int i = 0; i < listChartDashboard.length; i++) {
+      String randomString = getRandomString(20);
+      if(i != listChartDashboard.length - 1) {
+        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerID + "\",\"query\":{\"randomId\": \"" + randomString
+            + "\",\"mode\": \"0\", \"statement\": \"SELECT timestamp, "
+            + listChartDashboard.elementAt(i).rawName
+            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 500\"},\"modify\":null}, ";
+      }
+      else {
+        myJSON += "{\"dataType\":\"TAGQUERY\",\"name\":\"" + listChartDashboard.elementAt(i).loggerID + "\",\"query\":{\"randomId\": \"" + randomString
+            + "\",\"mode\": \"0\", \"statement\": \"SELECT timestamp, "
+            + listChartDashboard.elementAt(i).rawName
+            + " FROM DATATABLE ORDER BY timestamp DESC LIMIT 500\"},\"modify\":null}";
+      }
+
+    }
+
+    myJSON += "]}";
+
+    currentSocket.emit('push_data_event', myJSON);
+
+    currentSocket.on("dataset", (result) {
+      function(result);
+    });
+  }
+
   Future<String> getView(String username, String password) async {
     try {
       await http.get(Uri.parse('http://' + currentServer + '/session/getView?username=' + username + '&password=' + sha256.convert(utf8.encode(password)).toString())).then((value){
