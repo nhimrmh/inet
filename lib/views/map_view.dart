@@ -197,6 +197,34 @@ class GisMapViewState extends State<GisMapView> {
     );
   }
 
+  void moveTo(LatLng position, String loggerID) {
+    globalMapController.onReady.then((value) {
+      globalMapController.move(position, 15);
+      setFocusTo(loggerID);
+    });
+  }
+
+  void setFocusTo(String loggerID) {
+    LoggerPoint a;
+    try {
+      a = listLoggerPoints.where((q) => q.maLogger == loggerID).first;
+    }
+    catch(e) {
+      a = null;
+    }
+
+    if(a != null) {
+      clearFocusLogger();
+      a.isFocused = true;
+      currentPoint = a;
+      isInformation = true;
+      isViewMenu = false;
+    }
+    else {
+      showAlertDialog(context, "Không tìm thấy logger", "Vui lòng tìm kiếm logger thủ công");
+    }
+  }
+
   void initMap() {
       // listLayers.add(TileLayerOptions(
       //   urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
