@@ -644,12 +644,12 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  void setChartChanged(String result, String loggerName, String channelName, int idx) {
-    if(mounted && isReceivedChartQuery[idx] == false && mapNameChartQuery[idx] == loggerName) {
+  void setChartChanged(String result, String loggerName, String channelName, int idx, String id) {
+    if(mounted && isReceivedChartQuery[id] == false && mapNameChartQuery[idx] == loggerName && result.replaceAll("[]", "").isNotEmpty) {
       //setState(() {
         ///multiple chart
         // chartData.clear();
-        isReceivedChartQuery[idx] = true;
+        isReceivedChartQuery[id] = true;
       //});
       int tempMaxDateTime = -1;
       List<ChartData> tempList = <ChartData>[];
@@ -719,9 +719,9 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     int idx = 1;
     for (var element in listSocket) {
-      isReceivedChartQuery[idx] = false;
+      isReceivedChartQuery["${logger.objName}-$channelName-$idx"] = false;
       mapNameChartQuery[idx] = logger.objName;
-      socketService.getDataChart(logger.objName, channelName, 500, "", "", setChartChanged, element, idx, listSocket.length);
+      socketService.getDataChart(logger.objName, channelName, 500, "", "", setChartChanged, element, idx, listSocket.length, "${logger.objName}-$channelName-$idx");
       idx++;
     }
 

@@ -68,7 +68,7 @@ String currentDashboard = "";
 
 Map<String, bool> isReceivedChartDashboard = new Map<String, bool>();
 
-Map<int, bool> isReceivedChartQuery = new Map<int, bool>();
+Map<String, bool> isReceivedChartQuery = new Map<String, bool>();
 Map<int, String> mapNameChartQuery = new Map<int, String>();
 Map<String, bool> mapReceiveGis = new Map<String, bool>();
 Map<String, bool> mapIsChartChannel = <String, bool>{};
