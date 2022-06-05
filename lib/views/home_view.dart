@@ -204,7 +204,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         )
                     ),
                     border: OutlineInputBorder(
-                        borderRadius: const BorderRadius.all(const Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                         borderSide: BorderSide(
                             color: Colour('#D1DBEE'),
                             width: 1
@@ -216,14 +216,18 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               )
           ),
           isLoadingData ? Container(
-              height: 200,
-              margin: const EdgeInsets.only(top: 10, right: 25, left: 25),
-              child: miniLoading()
+            height: 200,
+            margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
+            child: loading(Theme.of(context), "chart"),
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.black26, width: 1),
+                borderRadius: const BorderRadius.all(Radius.circular(10))
+            ),
           ) : (chartData != null && chartData.isNotEmpty ? Container(
             margin: const EdgeInsets.only(top: 15, right: 25, left: 25),
             width: double.infinity,
             height: 300,
-            child: MyChart(chartData, title: "Loggers: ${listCurrentLoggers.toSet().toList()}\nChannels: ${listCurrentChannels.toSet().toList()}", listLoggerID: listCurrentLoggers, listChannel: listCurrentChannels,),
+            child: MyChart(chartData, title: "Loggers: ${listCurrentLoggers.toSet().toList()}, Channels: ${listCurrentChannels.toSet().toList()}", listLoggerID: listCurrentLoggers, listChannel: listCurrentChannels,),
           ) : Container()),
           // ChannelChart(isLoadingData, lineChart, chartData, currentChannel, currentChannel, setChartChanged, storedData),
           Container(
@@ -764,7 +768,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 children: [
                   SizedBox(
                     width: 30,
-                    height: 30,
+                    height: 40,
                     child: Checkbox(value: mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"], onChanged: (val){
                       setState(() {
                         mapIsChartChannel["${logger.objName}-${currentMeasure != null ? currentMeasure.channelName : element.fieldName}"] = val;
@@ -825,7 +829,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.only(top: 7),
+                      padding: const EdgeInsets.only(top: 17, bottom: 10),
                       child: Text((currentMeasure != null ? currentMeasure.channelName : element.fieldName) + ": " +
                           (
                               (element.value != null && element.value.isNotEmpty ? (element.value.values.last.toString().substring(element.value.values.last.toString().indexOf(".") + 1).length > 2 ?
