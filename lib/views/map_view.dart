@@ -54,7 +54,8 @@ class GisMapViewState extends State<GisMapView> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    // TODO: implement build\
+    print("List markers: ${listMarkers.where((element) => element.width != 0 && element.height != 0).toList().length.toString()}");
     return isInitMap && !isLoadingMap ? Stack(
       children: [
         Container(
@@ -72,7 +73,48 @@ class GisMapViewState extends State<GisMapView> {
                 clearFocus();
               },
             ),
-            layers: listLayers,
+            layers: [
+              TileLayerOptions(
+                urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+                subdomains: ['a', 'b', 'c'],
+              ),
+              ...listLayers,
+              MarkerClusterLayerOptions(
+              spiderfyCircleRadius: 20,
+              spiderfySpiralDistanceMultiplier: 2,
+              circleSpiralSwitchover: 12,
+              maxClusterRadius: 50,
+              rotate: true,
+              size: const Size(40, 40),
+              anchor: AnchorPos.align(AnchorAlign.center),
+              fitBoundsOptions: const FitBoundsOptions(
+                padding: EdgeInsets.all(50),
+              ),
+              markers: listMarkers.where((element) => element.width != 0 && element.height != 0).toList(),
+              polygonOptions: const PolygonOptions(
+                  borderColor: Colors.blueAccent,
+                  color: Colors.black12,
+                  borderStrokeWidth: 3),
+              popupOptions: PopupOptions(
+                popupSnap: PopupSnap.markerTop,
+                // popupController: _popupController,
+                popupBuilder: (_, marker) => Container(),
+              ),
+              builder: (context, markers) {
+                return Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0),
+                      color: Colors.blue),
+                  child: Center(
+                    child: Text(
+                      markers.length.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
+              },
+            ),
+            ],
           ),
         ),
         Column(
@@ -156,10 +198,10 @@ class GisMapViewState extends State<GisMapView> {
   }
 
   void initMap() {
-      listLayers.add(TileLayerOptions(
-        urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-        subdomains: ['a', 'b', 'c'],
-      ));
+      // listLayers.add(TileLayerOptions(
+      //   urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      //   subdomains: ['a', 'b', 'c'],
+      // ));
       mapLayer.forEach((key, value) {
         listLayers.add(mapLayerVisible[key] ? arcgis.FeatureLayerOptions(
           value,
@@ -191,41 +233,41 @@ class GisMapViewState extends State<GisMapView> {
           },
         ) : Container());
       });
-      listLayers.add(MarkerClusterLayerOptions(
-        spiderfyCircleRadius: 20,
-        spiderfySpiralDistanceMultiplier: 2,
-        circleSpiralSwitchover: 12,
-        maxClusterRadius: 50,
-        rotate: true,
-        size: const Size(40, 40),
-        anchor: AnchorPos.align(AnchorAlign.center),
-        fitBoundsOptions: const FitBoundsOptions(
-          padding: EdgeInsets.all(50),
-        ),
-        markers: isTatCa ? listMarkers : listMarkers.where((element) => element.width != 0 && element.height != 0).toList(),
-        polygonOptions: const PolygonOptions(
-            borderColor: Colors.blueAccent,
-            color: Colors.black12,
-            borderStrokeWidth: 3),
-        popupOptions: PopupOptions(
-          popupSnap: PopupSnap.markerTop,
-          // popupController: _popupController,
-          popupBuilder: (_, marker) => Container(),
-        ),
-        builder: (context, markers) {
-          return Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                color: Colors.blue),
-            child: Center(
-              child: Text(
-                markers.length.toString(),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          );
-        },
-      ));
+      // listLayers.add(MarkerClusterLayerOptions(
+      //   spiderfyCircleRadius: 20,
+      //   spiderfySpiralDistanceMultiplier: 2,
+      //   circleSpiralSwitchover: 12,
+      //   maxClusterRadius: 50,
+      //   rotate: true,
+      //   size: const Size(40, 40),
+      //   anchor: AnchorPos.align(AnchorAlign.center),
+      //   fitBoundsOptions: const FitBoundsOptions(
+      //     padding: EdgeInsets.all(50),
+      //   ),
+      //   markers: isTatCa ? listMarkers : listMarkers.where((element) => element.width != 0 && element.height != 0).toList(),
+      //   polygonOptions: const PolygonOptions(
+      //       borderColor: Colors.blueAccent,
+      //       color: Colors.black12,
+      //       borderStrokeWidth: 3),
+      //   popupOptions: PopupOptions(
+      //     popupSnap: PopupSnap.markerTop,
+      //     // popupController: _popupController,
+      //     popupBuilder: (_, marker) => Container(),
+      //   ),
+      //   builder: (context, markers) {
+      //     return Container(
+      //       decoration: BoxDecoration(
+      //           borderRadius: BorderRadius.circular(20.0),
+      //           color: Colors.blue),
+      //       child: Center(
+      //         child: Text(
+      //           markers.length.toString(),
+      //           style: const TextStyle(color: Colors.white),
+      //         ),
+      //       ),
+      //     );
+      //   },
+      // ));
 
       getFeatures();
   }
@@ -361,7 +403,7 @@ class GisMapViewState extends State<GisMapView> {
           jsonResult.forEach((key, value) {
             if(key == "features") {
               List<dynamic> listFeatures = value;
-              listFeatures.forEach((element) {
+              for (var element in listFeatures) {
                 Map<String, dynamic> featureInfo = Map<String, dynamic>.from(element);
 
                 LoggerPoint temp = LoggerPoint();
@@ -410,7 +452,7 @@ class GisMapViewState extends State<GisMapView> {
                 LoggerData tempLogger;
 
                 try {
-                  tempLogger = storedData.where((element) => element.objName == temp.maLogger).first;
+                  tempLogger = storedData.where((q) => q.objName == temp.maLogger).first;
                 }
                 catch(e) {
                   tempLogger = null;
@@ -418,7 +460,7 @@ class GisMapViewState extends State<GisMapView> {
 
                 if(tempLogger != null) {
                   for (var element in tempLogger.listElements) {
-                    Map<int,double> mapElement = storedData.where((element) => element.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.value;
+                    Map<int,double> mapElement = storedData.where((q) => q.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.value;
                     int maxKey = 0;
                     mapElement.forEach((key, value) {
                       if(key > maxKey) {
@@ -427,7 +469,7 @@ class GisMapViewState extends State<GisMapView> {
                     });
                     Map<int,String> mapAlarm;
                     try {
-                      mapAlarm = storedData.where((element) => element.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.alarm;
+                      mapAlarm = storedData.where((q) => q.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.alarm;
                     }
                     catch(e) {
                       mapAlarm = null;
@@ -435,7 +477,7 @@ class GisMapViewState extends State<GisMapView> {
 
                     AlarmType tempAlarmType = AlarmType();
                     try {
-                      tempAlarmType = listAlarmType.where((element) => element.id == mapAlarm[maxKey]).first;
+                      tempAlarmType = listAlarmType.where((q) => q.id == mapAlarm[maxKey]).first;
                     }
                     catch(e) {
                       tempAlarmType = null;
@@ -451,11 +493,10 @@ class GisMapViewState extends State<GisMapView> {
 
                   Marker tempMarker = Marker(
                       anchorPos: AnchorPos.align(AnchorAlign.center),
-                      width: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
-                      height: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
-                      point: LatLng(temp_y, temp_x),
+                      width: !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? 0 : 30,
+                      height: !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? 0 : 30,point: LatLng(temp_y, temp_x),
                       builder: (ctx) =>
-                      (!isTatCa && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true && temp.isFocused != true) ? Container() :
+                      !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? Container() :
                       GestureDetector(
                         onTap: (){
                           globalMapController.move(temp.position, globalMapController.zoom);
@@ -504,7 +545,7 @@ class GisMapViewState extends State<GisMapView> {
                 if(mapReceiveGis.containsKey(temp.maLogger)) {
                   mapReceiveGis[temp.maLogger] = true;
                 }
-              });
+              }
             }
           });
 
@@ -572,9 +613,9 @@ class GisMapViewState extends State<GisMapView> {
         }
 
         if(tempLogger != null) {
-          temp.listAlarm = List<AlarmType>();
+          temp.listAlarm = [];
           for (var element in tempLogger.listElements) {
-            Map<int,double> mapElement = storedData.where((element) => element.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.value;
+            Map<int,double> mapElement = storedData.where((q) => q.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.value;
             int maxKey = 0;
             mapElement.forEach((key, value) {
               if(key > maxKey) {
@@ -583,7 +624,7 @@ class GisMapViewState extends State<GisMapView> {
             });
             Map<int,String> mapAlarm;
             try {
-              mapAlarm = storedData.where((element) => element.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.alarm;
+              mapAlarm = storedData.where((q) => q.objName == temp.maLogger).first.listElements.where((fieldElement) => fieldElement.fieldName == element.fieldName).first.alarm;
             }
             catch(e) {
               mapAlarm = null;
@@ -591,7 +632,7 @@ class GisMapViewState extends State<GisMapView> {
 
             AlarmType tempAlarmType = AlarmType();
             try {
-              tempAlarmType = listAlarmType.where((element) => element.id == mapAlarm[maxKey]).first;
+              tempAlarmType = listAlarmType.where((q) => q.id == mapAlarm[maxKey]).first;
             }
             catch(e) {
               tempAlarmType = null;
@@ -607,11 +648,11 @@ class GisMapViewState extends State<GisMapView> {
 
           Marker tempMarker = Marker(
               anchorPos: AnchorPos.align(AnchorAlign.center),
-              width: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
-              height: isTatCa || (temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] == true && temp.isFocused != true) ? 30 : 0,
+              width: !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? 0 : 30,
+              height: !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? 0 : 30,
               point: LatLng(temp.position.latitude, temp.position.longitude),
               builder: (ctx) =>
-              (!isTatCa && temp.listAlarm != null && temp.listAlarm.isNotEmpty && listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true && temp.isFocused != true) ? Container() :
+              !isTatCa && temp.isFocused != true && (temp.listAlarm.isEmpty || (listAlarm.containsKey(temp.listAlarm.first.name) && listAlarm[temp.listAlarm.first.name] != true)) ? Container() :
               GestureDetector(
                 onTap: (){
                   globalMapController.move(temp.position, globalMapController.zoom);
@@ -652,8 +693,6 @@ class GisMapViewState extends State<GisMapView> {
           );
           listMarkers.add(tempMarker);
         }
-
-
       }
 
       tempList.sort((a,b) => a.tenLogger.compareTo(b.tenLogger));
