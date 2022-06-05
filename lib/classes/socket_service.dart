@@ -101,7 +101,7 @@ class SocketService {
     });
   }
 
-  void getDataChart(String loggerName, String channelSelect, int numberOfRecords, String fromDate, String toDate, Function function, IO.Socket currentSocket, int currentIdx, int total) {
+  void getDataChart(String loggerName, String channelSelect, int numberOfRecords, String fromDate, String toDate, Function function, IO.Socket currentSocket, int currentIdx, int total, String id) {
     String randomString = getRandomString(20);
     String myJSON;
 
@@ -124,7 +124,7 @@ class SocketService {
     currentSocket.emit('push_data_event', myJSON);
 
     currentSocket.on("dataset", (result) {
-      function(result, loggerName, channelSelect, currentIdx);
+      function(result, loggerName, channelSelect, currentIdx, id);
     });
   }
 

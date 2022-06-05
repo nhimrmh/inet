@@ -85,12 +85,12 @@ class ChannelChartState extends State<ChannelChart> {
     });
 
     int idx = 1;
-    listSocket.forEach((element) {
-      isReceivedChartQuery[idx] = false;
+    for (var element in listSocket) {
+      isReceivedChartQuery[idx.toString()] = false;
       mapNameChartQuery[idx] = logger.objName;
-      socketService.getDataChart(logger.objName, channelName, 1000, "", "", setChartChanged, element, idx, listSocket.length);
+      socketService.getDataChart(logger.objName, channelName, 1000, "", "", setChartChanged, element, idx, listSocket.length, idx.toString());
       idx++;
-    });
+    }
 
     t = Timer(Duration(seconds: 5), () {
       if(!isCancel) {

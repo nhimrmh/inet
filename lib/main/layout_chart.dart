@@ -130,14 +130,14 @@ class ChartDetailState extends State<ChartDetail> {
     if(numberOfRecord != 0) {
       int idx = 1;
       listSocket.forEach((element) {
-        socketService.getDataChart(loggerName, channelName, numberOfRecord, "", "", setChartChanged, element, idx, listSocket.length);
+        socketService.getDataChart(loggerName, channelName, numberOfRecord, "", "", setChartChanged, element, idx, listSocket.length, idx.toString());
         idx++;
       });
     }
     else {
       int idx = 1;
       listSocket.forEach((element) {
-        socketService.getDataChart(loggerName, channelName, 1000, fromDate, toDate, setChartChanged, element, idx, listSocket.length);
+        socketService.getDataChart(loggerName, channelName, 1000, fromDate, toDate, setChartChanged, element, idx, listSocket.length, idx.toString());
         idx++;
       });
     }
